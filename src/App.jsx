@@ -22,13 +22,20 @@ function App() {
 
   // Normaliza el textarea a arreglo de URLs con http(s)
   const normalizeUrls = useCallback((text) => {
-    return text
-      .split(/\n|,|;/)
-      .map(u => u.trim())
-      .filter(Boolean)
-      .map(u => (u.startsWith('http://') || u.startsWith('https://') ? u : `https://${u}`));
+    const lines = text.split(/\n+/).map(s => s.trim()).filter(Boolean);
+    const urls = [];
+    for (const ln of lines) {
+      const hits = ln.match(/https?:\/\/\S+|(?:www\.)\S+/g) || [];
+      if (hits.length === 1) {
+        let u = hits[0];
+        if (!/^https?:\/\//i.test(u)) u = "https://" + u;
+        urls.push(u);
+      }
+      // si la línea trae 0 o más de 1 URL, la ignoramos
+    }
+    return Array.from(new Set(urls)); // elimina duplicados
   }, []);
-
+  
   const handleUrlsChange = useCallback((value) => {
     setFormData(prev => ({ ...prev, urls: value }));
     const urls = normalizeUrls(value);
