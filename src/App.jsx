@@ -70,6 +70,8 @@ function App() {
       toast({ title: "¡Análisis completado!", description: `Se analizaron ${data.results?.length || 0} URLs exitosamente.` });
     } catch (error) {
       console.error('Error en el análisis:', error);
+      console.log("API analyze-json →", data);
+      console.log("results length:", data?.results?.length);
       toast({ title: "Error en el análisis", description: error.message || "No se pudo completar el análisis.", variant: "destructive" });
     } finally {
       setIsAnalyzing(false);
