@@ -25,7 +25,7 @@ function InstructionsSection() {
             <strong className="text-foreground">2.</strong> Opcionalmente, especifica su cargo o aspiración política.
           </p>
           <p>
-            <strong className="text-foreground">3.</strong> Pega al menos 35 URLs de noticias, artículos o contenido web relacionado (una por línea).
+            <strong className="text-foreground">3.</strong> Pega al menos 25 URLs de noticias, artículos o contenido web relacionado (una por línea).
           </p>
           <p>
             <strong className="text-foreground">4.</strong> Haz clic en "Analizar" y espera los resultados del análisis de percepción digital.
