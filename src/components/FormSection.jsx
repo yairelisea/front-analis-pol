@@ -1,100 +1,85 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Loader2, TrendingUp } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 
-function FormSection({ formData, setFormData, handleUrlsChange, handleSubmit, isAnalyzing, urlCount }) {
+export default function FormSection({
+  formData,
+  setFormData,
+  handleUrlsChange,
+  handleSubmit,
+  isAnalyzing,
+  urlCount,
+  minRequired
+}) {
+  const onNameChange = (e) => setFormData(prev => ({ ...prev, name: e.target.value }));
+  const onOfficeChange = (e) => setFormData(prev => ({ ...prev, office: e.target.value }));
+  const onUrlsChange = (e) => handleUrlsChange(e.target.value);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
-    >
-      <Card className="glass-effect border-gray-200">
-        <CardHeader>
-          <CardTitle className="text-foreground flex items-center gap-2">
-            <TrendingUp className="h-6 w-6 text-[#1acc8d]" />
-            Configurar Análisis
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-foreground">
-                  Nombre del personaje *
-                </Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Ej: Juan Pérez"
-                  required
-                  className="bg-gray-100/50 border-gray-300 text-foreground placeholder:text-gray-500"
-                />
-              </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Nombre (requerido)</label>
+          <input
+            required
+            value={formData.name}
+            onChange={onNameChange}
+            className="mt-1 block w-full border rounded px-3 py-2"
+            placeholder="Ej: Juan Pérez"
+          />
+        </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="office" className="text-foreground">
-                  Cargo/aspiración
-                </Label>
-                <Input
-                  id="office"
-                  value={formData.office}
-                  onChange={(e) => setFormData(prev => ({ ...prev, office: e.target.value }))}
-                  placeholder="Ej: Alcalde, Senador"
-                  className="bg-gray-100/50 border-gray-300 text-foreground placeholder:text-gray-500"
-                />
-              </div>
-            </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Cargo / Aspira a (opcional)</label>
+          <input
+            value={formData.office}
+            onChange={onOfficeChange}
+            className="mt-1 block w-full border rounded px-3 py-2"
+            placeholder="Ej: Diputado nacional"
+          />
+        </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <Label htmlFor="urls" className="text-foreground">
-                  URLs (una por línea) *
-                </Label>
-                <Badge
-                  variant={urlCount >= 35 ? "default" : "destructive"}
-                  className={`text-xs ${urlCount >= 35 ? "bg-[#1acc8d] text-white" : ""}`}
-                >
-                  {urlCount} de 25 mínimo
-                </Badge>
-              </div>
-              <Textarea
-                id="urls"
-                value={formData.urls}
-                onChange={(e) => handleUrlsChange(e.target.value)}
-                placeholder="https://ejemplo.com/noticia1&#10;https://ejemplo.com/noticia2&#10;..."
-                rows={8}
-                required
-                className="bg-gray-100/50 border-gray-300 text-foreground placeholder:text-gray-500 font-mono text-sm"
-              />
-            </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Detectadas</label>
+          <div className="mt-1 text-sm text-gray-600">{urlCount} URLs</div>
+          <div className="mt-2 text-xs text-gray-500">Se requieren mínimo {minRequired} URLs para analizar.</div>
+        </div>
+      </div>
 
-            <Button
-              type="submit"
-              disabled={isAnalyzing || urlCount < 25}
-              className="w-full bg-[#1acc8d] hover:bg-emerald-700 text-white font-semibold py-3 text-lg"
-            >
-              {isAnalyzing ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Analizando...
-                </>
-              ) : (
-                'Analizar'
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </motion.div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700">URLs (1 por línea)</label>
+        <textarea
+          value={formData.urls}
+          onChange={onUrlsChange}
+          rows={8}
+          className="mt-1 block w-full border rounded px-3 py-2 font-mono text-sm"
+          placeholder={
+`Ejemplos:
+https://www.tiktok.com/@usuario/video/...
+https://www.instagram.com/p/...
+https://x.com/usuario/status/...
+https://medio.com/articulo...`
+          }
+        />
+        <div className="text-xs text-gray-500 mt-1">
+          Pega una URL por línea. Si falta https:// se añadirá automáticamente. Se ignorarán líneas vacías o con más de una URL.
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <button
+          type="submit"
+          disabled={isAnalyzing}
+          className="px-4 py-2 bg-[#1acc8d] text-white rounded disabled:opacity-60"
+        >
+          {isAnalyzing ? 'Generando análisis...' : 'Generar análisis'}
+        </button>
+        <button
+          type="button"
+          onClick={() => { setFormData({ name: '', office: '', urls: '' }); handleUrlsChange(''); }}
+          className="px-3 py-2 border rounded"
+        >
+          Limpiar
+        </button>
+      </div>
+    </form>
   );
 }
-
-export default FormSection;

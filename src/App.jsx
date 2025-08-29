@@ -7,35 +7,36 @@ import FormSection from '@/components/FormSection';
 import InstructionsSection from '@/components/InstructionsSection';
 import ResultsView from '@/components/ResultsView';
 
-// URL de la API (Netlify: define VITE_API_BASE en Environment Variables)
+// URL de la API (Netlify / local)
 const API_BASE = import.meta.env.VITE_API_BASE || 'https://analisis-pol-b1ap.onrender.com';
-const MIN_REQUIRED = 25; // 👈 mínimo unificado
+const MIN_REQUIRED = 25;
 
 function App() {
   const [view, setView] = useState('form'); // 'form' or 'results'
   const [formData, setFormData] = useState({ name: '', office: '', urls: '' });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [results, setResults] = useState(null);
+  const [data, setData] = useState(null); // { politician, results, summary }
   const [urlCount, setUrlCount] = useState(0);
   const { toast } = useToast();
   const resultsRef = useRef(null);
 
-  // Normaliza el textarea a arreglo de URLs con http(s)
+  // Normaliza: 1 URL por línea, añade https si falta, ignora líneas con 0 o >1 URLs, elimina duplicados
   const normalizeUrls = useCallback((text) => {
-    const lines = text.split(/\n+/).map(s => s.trim()).filter(Boolean);
+    if (!text) return [];
+    const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
     const urls = [];
     for (const ln of lines) {
       const hits = ln.match(/https?:\/\/\S+|(?:www\.)\S+/g) || [];
       if (hits.length === 1) {
         let u = hits[0];
-        if (!/^https?:\/\//i.test(u)) u = "https://" + u;
+        if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
         urls.push(u);
       }
-      // si la línea trae 0 o más de 1 URL, la ignoramos
+      // si hits.length === 0 o >1 => ignorar línea
     }
-    return Array.from(new Set(urls)); // elimina duplicados
+    return Array.from(new Set(urls));
   }, []);
-  
+
   const handleUrlsChange = useCallback((value) => {
     setFormData(prev => ({ ...prev, urls: value }));
     const urls = normalizeUrls(value);
@@ -43,21 +44,20 @@ function App() {
   }, [normalizeUrls]);
 
   const handleSubmit = useCallback(async (e) => {
-    e.preventDefault();
+    e?.preventDefault?.();
     const urls = normalizeUrls(formData.urls);
 
     if (!formData.name.trim()) {
-      toast({ title: "Error de validación", description: "El nombre del personaje es obligatorio", variant: "destructive" });
+      toast({ title: 'Error de validación', description: 'El nombre del personaje es obligatorio', variant: 'destructive' });
       return;
     }
-    // ✅ mínimo 25 URLs
     if (urls.length < MIN_REQUIRED) {
-      toast({ title: "URLs insuficientes", description: `Se requieren al menos ${MIN_REQUIRED} URLs. Actualmente tienes ${urls.length}.`, variant: "destructive" });
+      toast({ title: 'URLs insuficientes', description: `Se requieren al menos ${MIN_REQUIRED} URLs. Actualmente tienes ${urls.length}.`, variant: 'destructive' });
       return;
     }
 
     setIsAnalyzing(true);
-    setResults(null);
+    setData(null);
 
     try {
       const payload = { politician: { name: formData.name.trim(), office: formData.office.trim() || undefined }, urls };
@@ -65,25 +65,23 @@ function App() {
       const response = await fetch(`${API_BASE}/analyze-json`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        const errorText = await response.text().catch(() => 'Error desconocido del servidor');
-        throw new Error(errorText || `Error del servidor: ${response.status}`);
+        const errText = await response.text().catch(() => 'Error desconocido del servidor');
+        throw new Error(errText || `Error del servidor: ${response.status}`);
       }
 
-      const data = await response.json();
-      // Logs útiles para validar lo que llega:
-      console.log("API analyze-json →", data);
-      console.log("results length:", data?.results?.length);
-
-      setResults(data);
+      const json = await response.json();
+      // json expected: { politician, results, summary }
+      console.log('analyze-json →', json);
+      setData(json);
       setView('results');
-      toast({ title: "¡Análisis completado!", description: `Se analizaron ${data.results?.length || 0} URLs exitosamente.` });
-    } catch (error) {
-      console.error('Error en el análisis:', error);
-      toast({ title: "Error en el análisis", description: error.message || "No se pudo completar el análisis.", variant: "destructive" });
+      toast({ title: '¡Análisis completado!', description: `Se analizaron ${json.results?.length || 0} publicaciones.` });
+    } catch (err) {
+      console.error('Error en el análisis:', err);
+      toast({ title: 'Error en el análisis', description: err.message || 'No se pudo completar el análisis.', variant: 'destructive' });
     } finally {
       setIsAnalyzing(false);
     }
@@ -91,68 +89,57 @@ function App() {
 
   const handleNewAnalysis = () => {
     setView('form');
-    setResults(null);
+    setData(null);
     setFormData({ name: '', office: '', urls: '' });
     setUrlCount(0);
   };
 
-  // ✅ descarga PDF desde el backend
+  // descarga PDF (backend genera y devuelve blob)
   const handleDownloadPdf = useCallback(async () => {
     const urls = normalizeUrls(formData.urls);
+    const politicianName = (data?.politician?.name || formData.name || '').trim();
 
-    if (!formData.name.trim()) {
-      toast({ title: "Error de validación", description: "El nombre del personaje es obligatorio", variant: "destructive" });
+    if (!politicianName) {
+      toast({ title: 'Error de validación', description: 'El nombre del personaje es obligatorio', variant: 'destructive' });
       return;
     }
     if (urls.length < MIN_REQUIRED) {
-      toast({ title: "URLs insuficientes", description: `Se requieren al menos ${MIN_REQUIRED} URLs. Actualmente tienes ${urls.length}.`, variant: "destructive" });
+      toast({ title: 'URLs insuficientes', description: `Se requieren al menos ${MIN_REQUIRED} URLs. Actualmente tienes ${urls.length}.`, variant: 'destructive' });
       return;
     }
 
     try {
-      toast({ title: "Generando PDF...", description: "Esto puede tardar unos segundos." });
-      const payload = { politician: { name: formData.name.trim(), office: formData.office.trim() || undefined }, urls };
+      toast({ title: 'Generando PDF...', description: 'Esto puede tardar unos segundos.' });
+      const payload = { politician: { name: politicianName, office: formData.office.trim() || undefined }, urls };
       const res = await fetch(`${API_BASE}/analyze-pdf`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
-        const errorText = await res.text().catch(() => 'Error desconocido del servidor');
-        throw new Error(errorText || `Error del servidor: ${res.status}`);
+        const errText = await res.text().catch(() => 'Error desconocido del servidor');
+        throw new Error(errText || `Error del servidor: ${res.status}`);
       }
 
       const blob = await res.blob();
       const href = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = href;
-      a.download = `percepcion_${formData.name.replace(/\s+/g, '_')}.pdf`;
+      const safeName = politicianName.replace(/\s+/g, '_') || 'reporte';
+      a.download = `percepcion_${safeName}.pdf`;
       a.click();
       URL.revokeObjectURL(href);
-      toast({ title: "¡PDF descargado!", description: "El reporte del análisis se ha guardado." });
+      toast({ title: '¡PDF descargado!', description: 'El reporte del análisis se ha guardado.' });
     } catch (err) {
-      console.error("Error al generar PDF:", err);
-      toast({ title: "Error al generar PDF", description: err.message || "No se pudo crear el archivo PDF.", variant: "destructive" });
+      console.error('Error al generar PDF:', err);
+      toast({ title: 'Error al generar PDF', description: err.message || 'No se pudo crear el archivo PDF.', variant: 'destructive' });
     }
-  }, [formData, normalizeUrls, toast]);
-
-  const getSentimentSummary = useMemo(() => {
-    if (!results?.results) return null;
-    const sentiments = results.results.reduce((acc, item) => {
-      const sentiment = item.ai?.sentiment?.toLowerCase();
-      if (sentiment) acc[sentiment] = (acc[sentiment] || 0) + 1;
-      return acc;
-    }, {});
-    const total = Object.values(sentiments).reduce((sum, count) => sum + count, 0);
-    const predominantEntry = Object.entries(sentiments).reduce((a, b) => a[1] > b[1] ? a : b, ['', 0]);
-    const predominant = predominantEntry[0];
-    return { sentiments, total, predominant };
-  }, [results]);
+  }, [formData, normalizeUrls, data, toast]);
 
   const getBadgeVariant = useCallback((type, value) => {
     if (type === 'sentiment') {
-      switch (value?.toLowerCase()) {
+      switch ((value || '').toLowerCase()) {
         case 'positive': return 'positive';
         case 'negative': return 'destructive';
         case 'neutral': return 'secondary';
@@ -175,9 +162,6 @@ function App() {
     <>
       <Helmet>
         <title>Percepción Digital — Analizador de Percepción Política</title>
-        <meta name="description" content="Herramienta avanzada para analizar la percepción digital de figuras políticas a través del análisis de múltiples fuentes web." />
-        <meta property="og:title" content="Percepción Digital — Analizador de Percepción Política" />
-        <meta property="og:description" content="Herramienta avanzada para analizar la percepción digital de figuras políticas a través del análisis de múltiples fuentes web." />
       </Helmet>
 
       <div className="min-h-screen p-4 md:p-8">
@@ -198,7 +182,7 @@ function App() {
                     handleSubmit={handleSubmit}
                     isAnalyzing={isAnalyzing}
                     urlCount={urlCount}
-                    minRequired={MIN_REQUIRED}   // 👈 pasa el mínimo al componente
+                    minRequired={MIN_REQUIRED}
                   />
                   <InstructionsSection minRequired={MIN_REQUIRED} />
                 </div>
@@ -206,9 +190,9 @@ function App() {
             ) : (
               <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
                 <ResultsView
-                  politicianName={formData.name}
-                  results={results}
-                  sentimentSummary={getSentimentSummary}
+                  politicianName={data?.politician?.name || formData.name}
+                  results={data?.results || []}
+                  summary={data?.summary || null}
                   getBadgeVariant={getBadgeVariant}
                   formatDate={formatDate}
                   onNewAnalysis={handleNewAnalysis}
