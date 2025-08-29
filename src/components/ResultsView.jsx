@@ -197,6 +197,10 @@ const ResultsView = ({
                     <div className="mt-1 text-sm text-gray-800">{r.ai.summary}</div>
                   </div>
                 ) : null}
+                
+                {summary?.short_text ? (
+  <p className="text-gray-700 mt-2 leading-relaxed">{summary.short_text}</p>
+) : null}  
 
                 <div className="mt-2 text-sm">
                   <Pill>Sentimiento: {sentiment}</Pill>
