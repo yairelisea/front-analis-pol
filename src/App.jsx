@@ -9,6 +9,7 @@ import ResultsView from '@/components/ResultsView';
 
 // URL de la API (Netlify: define VITE_API_BASE en Environment Variables)
 const API_BASE = import.meta.env.VITE_API_BASE || 'https://analisis-pol-b1ap.onrender.com';
+const MIN_REQUIRED = 25; // 👈 mínimo unificado
 
 function App() {
   const [view, setView] = useState('form'); // 'form' or 'results'
@@ -43,8 +44,8 @@ function App() {
       return;
     }
     // ✅ mínimo 25 URLs
-    if (urls.length < 25) {
-      toast({ title: "URLs insuficientes", description: `Se requieren al menos 25 URLs. Actualmente tienes ${urls.length}.`, variant: "destructive" });
+    if (urls.length < MIN_REQUIRED) {
+      toast({ title: "URLs insuficientes", description: `Se requieren al menos ${MIN_REQUIRED} URLs. Actualmente tienes ${urls.length}.`, variant: "destructive" });
       return;
     }
 
@@ -53,6 +54,7 @@ function App() {
 
     try {
       const payload = { politician: { name: formData.name.trim(), office: formData.office.trim() || undefined }, urls };
+
       const response = await fetch(`${API_BASE}/analyze-json`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -65,13 +67,15 @@ function App() {
       }
 
       const data = await response.json();
+      // Logs útiles para validar lo que llega:
+      console.log("API analyze-json →", data);
+      console.log("results length:", data?.results?.length);
+
       setResults(data);
       setView('results');
       toast({ title: "¡Análisis completado!", description: `Se analizaron ${data.results?.length || 0} URLs exitosamente.` });
     } catch (error) {
       console.error('Error en el análisis:', error);
-      console.log("API analyze-json →", data);
-      console.log("results length:", data?.results?.length);
       toast({ title: "Error en el análisis", description: error.message || "No se pudo completar el análisis.", variant: "destructive" });
     } finally {
       setIsAnalyzing(false);
@@ -93,8 +97,8 @@ function App() {
       toast({ title: "Error de validación", description: "El nombre del personaje es obligatorio", variant: "destructive" });
       return;
     }
-    if (urls.length < 25) {
-      toast({ title: "URLs insuficientes", description: `Se requieren al menos 25 URLs. Actualmente tienes ${urls.length}.`, variant: "destructive" });
+    if (urls.length < MIN_REQUIRED) {
+      toast({ title: "URLs insuficientes", description: `Se requieren al menos ${MIN_REQUIRED} URLs. Actualmente tienes ${urls.length}.`, variant: "destructive" });
       return;
     }
 
@@ -187,8 +191,9 @@ function App() {
                     handleSubmit={handleSubmit}
                     isAnalyzing={isAnalyzing}
                     urlCount={urlCount}
+                    minRequired={MIN_REQUIRED}   // 👈 pasa el mínimo al componente
                   />
-                  <InstructionsSection />
+                  <InstructionsSection minRequired={MIN_REQUIRED} />
                 </div>
               </motion.div>
             ) : (
@@ -200,8 +205,8 @@ function App() {
                   getBadgeVariant={getBadgeVariant}
                   formatDate={formatDate}
                   onNewAnalysis={handleNewAnalysis}
-                  onDownloadPdf={handleDownloadPdf}   // descarga desde backend
-                  resultsRef={resultsRef}              // ref opcional para tu layout
+                  onDownloadPdf={handleDownloadPdf}
+                  resultsRef={resultsRef}
                 />
               </motion.div>
             )}

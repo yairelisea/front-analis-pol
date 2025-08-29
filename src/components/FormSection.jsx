@@ -62,7 +62,7 @@ function FormSection({ formData, setFormData, handleUrlsChange, handleSubmit, is
                   variant={urlCount >= 35 ? "default" : "destructive"}
                   className={`text-xs ${urlCount >= 35 ? "bg-[#1acc8d] text-white" : ""}`}
                 >
-                  {urlCount} de 35 mínimo
+                  {urlCount} de 25 mínimo
                 </Badge>
               </div>
               <Textarea
@@ -78,7 +78,7 @@ function FormSection({ formData, setFormData, handleUrlsChange, handleSubmit, is
 
             <Button
               type="submit"
-              disabled={isAnalyzing || urlCount < 35}
+              disabled={isAnalyzing || urlCount < 25}
               className="w-full bg-[#1acc8d] hover:bg-emerald-700 text-white font-semibold py-3 text-lg"
             >
               {isAnalyzing ? (
