@@ -128,14 +128,7 @@ const ResultsView = ({
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <button onClick={onNewAnalysis} className="px-3 py-2 border rounded">
-              Nuevo análisis
-            </button>
-            <button onClick={onDownloadPdf} className="px-3 py-2 border rounded">
-              Descargar PDF
-            </button>
-          </div>
+          {/* botones duplicados eliminados */}
         </div>
 
         {results.length === 0 && (
