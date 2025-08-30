@@ -20,38 +20,14 @@ function App() {
   const { toast } = useToast();
   const resultsRef = useRef(null);
 
-  // --- NUEVO: estado y refs para progreso (UI simulada) ---
-  const [progress, setProgress] = useState(0);
-  const progressTimer = useRef(null);
+  // --- NUEVO: estado de progreso (objetivo) y utilidad chunk ---
+  const [progress, setProgress] = useState({ total: 0, done: 0, percent: 0 });
 
-  const startFakeProgress = useCallback((urlsLen) => {
-    if (progressTimer.current) clearInterval(progressTimer.current);
-    setProgress(0);
-    const targetSeconds = Math.min(60, Math.max(12, urlsLen * 2)); // 2s por URL hasta 60s
-    const stepMs = 300;
-    const totalSteps = Math.floor((targetSeconds * 1000) / stepMs);
-    const increment = 90 / Math.max(1, totalSteps); // hasta 90%
-    progressTimer.current = setInterval(() => {
-      setProgress((p) => Math.min(90, p + increment));
-    }, stepMs);
-  }, []);
-
-  const finishProgress = useCallback(() => {
-    if (progressTimer.current) {
-      clearInterval(progressTimer.current);
-      progressTimer.current = null;
-    }
-    setProgress(100);
-    setTimeout(() => setProgress(0), 800);
-  }, []);
-
-  const resetProgress = useCallback(() => {
-    if (progressTimer.current) {
-      clearInterval(progressTimer.current);
-      progressTimer.current = null;
-    }
-    setProgress(0);
-  }, []);
+  function chunk(arr, size) {
+    const out = [];
+    for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+    return out;
+  }
   // --- fin progreso ---
 
   // Normaliza: 1 URL por línea, añade https si falta, ignora líneas con 0 o >1 URLs, elimina duplicados
@@ -88,44 +64,101 @@ function App() {
     setData(null);
 
     try {
-      startFakeProgress(urls.length);
+      const chunks = chunk(urls, 6); // 6–8 funciona bien en Render
+      setProgress({ total: urls.length, done: 0, percent: 0 });
 
-      const payload = { politician: { name: formData.name.trim(), office: formData.office.trim() || undefined }, urls };
+      let aggregate = [];
+      for (const part of chunks) {
+        const payload = { politician: { name: formData.name.trim(), office: formData.office.trim() || undefined }, urls: part };
 
-      const response = await fetch(`${API_BASE}/analyze-json`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+        const res = await fetch(`${API_BASE}/analyze-chunk`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
 
-      if (!response.ok) {
-        const errText = await response.text().catch(() => 'Error desconocido del servidor');
-        throw new Error(errText || `Error del servidor: ${response.status}`);
+        if (!res.ok) {
+          const txt = await res.text().catch(() => '');
+          const detail = (() => { try { return JSON.parse(txt)?.detail || txt; } catch { return txt || 'Error del servidor'; }})();
+          throw new Error(detail);
+        }
+
+        const chunkData = await res.json();
+        aggregate = aggregate.concat(chunkData.results || []);
+
+        setProgress(prev => {
+          const done = Math.min(prev.total, prev.done + part.length);
+          const percent = prev.total ? Math.round((done * 100) / prev.total) : 0;
+          return { ...prev, done, percent };
+        });
       }
 
-      const json = await response.json();
-      // json expected: { politician, results, summary }
-      console.log('analyze-json →', json);
-      setData(json);
+      // Calcula summary en el front
+      const sentiments = {};
+      const stances = {};
+      const entities = {};
+      for (const r of aggregate) {
+        const s = (r.ai?.sentiment || 'neutral').toLowerCase();
+        sentiments[s] = (sentiments[s] || 0) + 1;
+        const st = (r.ai?.stance || 'none').toLowerCase();
+        stances[st] = (stances[st] || 0) + 1;
+        for (const e of (r.ai?.entities || [])) {
+          if (!e) continue;
+          entities[e] = (entities[e] || 0) + 1;
+        }
+      }
+      const total = aggregate.length;
+      const predominant = Object.keys(sentiments).sort((a,b)=>(sentiments[b]||0)-(sentiments[a]||0))[0] || 'neutral';
+      const top_entities = Object.entries(entities)
+        .sort((a,b)=>b[1]-a[1]).slice(0,5).map(([n,c])=>`${n} (${c})`);
+
+      const summary = { total, sentiments, predominant, stances, top_entities };
+      setData({ politician: { name: formData.name.trim(), office: formData.office.trim() || undefined }, results: aggregate, summary });
       setView('results');
-      toast({ title: '¡Análisis completado!', description: `Se analizaron ${json.results?.length || 0} publicaciones.` });
-      finishProgress();
+
+      toast({ title: '¡Análisis completado!', description: `Se analizaron ${aggregate.length} URLs en ${chunks.length} lotes.` });
     } catch (err) {
-      console.error('Error en el análisis:', err);
+      console.error('Fetch error:', err);
       toast({ title: 'Error en el análisis', description: err.message || 'No se pudo completar el análisis.', variant: 'destructive' });
-      resetProgress();
     } finally {
       setIsAnalyzing(false);
+      setProgress(p => ({ ...p, percent: p.done === p.total ? 100 : p.percent }));
     }
-  }, [formData, normalizeUrls, toast, startFakeProgress, finishProgress, resetProgress]);
+  }, [formData, normalizeUrls, toast]);
 
   const handleNewAnalysis = () => {
     setView('form');
     setData(null);
     setFormData({ name: '', office: '', urls: '' });
     setUrlCount(0);
-    resetProgress();
+    setProgress({ total: 0, done: 0, percent: 0 });
   };
+
+  const handleDownloadPdf = useCallback(async () => {
+    if (!data?.results?.length) {
+      toast({ title: 'Nada que exportar', description: 'Aún no hay resultados.', variant: 'destructive' });
+      return;
+    }
+    try {
+      toast({ title: 'Generando PDF...', description: 'Esto puede tardar unos segundos.' });
+      const res = await fetch(`${API_BASE}/render-pdf`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data) // { politician, results, summary }
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const blob = await res.blob();
+      const href = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = href;
+      a.download = `percepcion_${(data.politician?.name || 'reporte').replace(/\s+/g,'_')}.pdf`;
+      a.click();
+      URL.revokeObjectURL(href);
+      toast({ title: '¡PDF listo!', description: 'Se descargó el reporte.' });
+    } catch (err) {
+      toast({ title: 'Error al generar PDF', description: err.message || 'No se pudo crear el archivo.', variant: 'destructive' });
+    }
+  }, [data, toast]);
 
   // --- NUEVO: resumen de sentimientos (para mostrar en ResultsView) ---
   const getSentimentSummary = useMemo(() => {
@@ -193,17 +226,16 @@ function App() {
 
                   {/* NUEVO: barra de progreso simple */}
                   {isAnalyzing && (
-                    <div className="mt-2">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm text-gray-600">Analizando…</span>
-                        <span className="text-sm text-gray-600">{Math.round(progress)}%</span>
+                    <div className="mt-4">
+                      <div className="h-2 w-full bg-gray-200 rounded">
+                        <div
+                          className="h-2 bg-blue-600 rounded"
+                          style={{ width: `${progress.percent}%`, transition: 'width .3s' }}
+                        />
                       </div>
-                      <div className="w-full h-2 bg-gray-200 rounded">
-                        <div className="h-2 bg-blue-600 rounded" style={{ width: `${progress}%`, transition: 'width 300ms ease' }} />
-                      </div>
-                      <div className="mt-1 text-xs text-gray-500">
-                        Aproximado: {Math.min(urlCount, Math.max(1, Math.round((progress/100) * urlCount)))} / {urlCount} URLs
-                      </div>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Procesando {progress.done}/{progress.total} ({progress.percent}%)
+                      </p>
                     </div>
                   )}
 
