@@ -96,46 +96,35 @@ function App() {
 
   // descarga PDF (backend genera y devuelve blob)
   const handleDownloadPdf = useCallback(async () => {
-    const urls = normalizeUrls(formData.urls);
-    const politicianName = (data?.politician?.name || formData.name || '').trim();
-
-    if (!politicianName) {
-      toast({ title: 'Error de validación', description: 'El nombre del personaje es obligatorio', variant: 'destructive' });
+    if (!data?.results?.length) {
+      toast({ title: "No hay resultados", description: "Primero ejecuta el análisis.", variant: "destructive" });
       return;
     }
-    if (urls.length < MIN_REQUIRED) {
-      toast({ title: 'URLs insuficientes', description: `Se requieren al menos ${MIN_REQUIRED} URLs. Actualmente tienes ${urls.length}.`, variant: 'destructive' });
-      return;
-    }
-
     try {
-      toast({ title: 'Generando PDF...', description: 'Esto puede tardar unos segundos.' });
-      const payload = { politician: { name: politicianName, office: formData.office.trim() || undefined }, urls };
-      const res = await fetch(`${API_BASE}/analyze-pdf`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+      toast({ title: "Generando PDF...", description: "Usando resultados ya calculados." });
+      const res = await fetch(`${API_BASE}/render-pdf`, {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify({
+          politician: { name: formData.name.trim(), office: formData.office.trim() || undefined },
+          results: data.results,
+          summary: data.summary || null
+        })
       });
-
-      if (!res.ok) {
-        const errText = await res.text().catch(() => 'Error desconocido del servidor');
-        throw new Error(errText || `Error del servidor: ${res.status}`);
-      }
-
+      if (!res.ok) throw new Error(await res.text());
       const blob = await res.blob();
       const href = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = href;
-      const safeName = politicianName.replace(/\s+/g, '_') || 'reporte';
-      a.download = `percepcion_${safeName}.pdf`;
+      a.download = `percepcion_${formData.name.replace(/\s+/g, "_")}.pdf`;
       a.click();
       URL.revokeObjectURL(href);
-      toast({ title: '¡PDF descargado!', description: 'El reporte del análisis se ha guardado.' });
+      toast({ title: "¡PDF descargado!", description: "Reporte generado sin reanalizar URLs." });
     } catch (err) {
-      console.error('Error al generar PDF:', err);
-      toast({ title: 'Error al generar PDF', description: err.message || 'No se pudo crear el archivo PDF.', variant: 'destructive' });
+      console.error("Error al descargar PDF:", err);
+      toast({ title: "Error al generar PDF", description: err.message || "Inténtalo de nuevo.", variant: "destructive" });
     }
-  }, [formData, normalizeUrls, data, toast]);
+  }, [data, formData, toast]);
 
   const getBadgeVariant = useCallback((type, value) => {
     if (type === 'sentiment') {
