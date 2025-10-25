@@ -1,3 +1,4 @@
+import { API_BASE, MIN_URLS } from './config';
 // src/lib/api.js
 import { API_BASE } from "../config";
 
