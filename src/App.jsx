@@ -9,7 +9,7 @@ import ResultsView from '@/components/ResultsView';
 
 // URL de la API (Netlify / local)
 const API_BASE = import.meta.env.VITE_API_BASE || 'https://analisis-pol-b1ap.onrender.com';
-const MIN_REQUIRED = 25;
+const MIN_REQUIRED = 5;
 
 function App() {
   const [view, setView] = useState('form'); // 'form' or 'results'
