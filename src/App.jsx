@@ -1,3 +1,4 @@
+import { API_BASE, MIN_URLS } from "../config";
 import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { Helmet } from 'react-helmet';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -8,7 +9,7 @@ import InstructionsSection from '@/components/InstructionsSection';
 import ResultsView from '@/components/ResultsView';
 
 // URL de la API (Netlify / local)
-const API_BASE = import.meta.env.VITE_API_BASE || 'https://analisis-pol-b1ap.onrender.com';
+const API_BASE = import.meta.env.VITE_API_BASE || '${API_BASE}';
 const MIN_REQUIRED = 5;
 
 function App() {

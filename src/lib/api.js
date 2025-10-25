@@ -10,7 +10,7 @@ export function processUrls(text) {
 }
 
 export async function analyzeJSON({ name, office, urls }) {
-  const res = await fetch(`${API_BASE}/analyze-json`, {
+  const res = await fetch(`${API_BASE}/analyze-chunk`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ politician: { name, office }, urls }),
@@ -23,7 +23,7 @@ export async function analyzeJSON({ name, office, urls }) {
 }
 
 export async function downloadPDF({ name, office, urls }) {
-  const res = await fetch(`${API_BASE}/analyze-pdf`, {
+  const res = await fetch(`${API_BASE}/analyze-chunk`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ politician: { name, office }, urls }),
