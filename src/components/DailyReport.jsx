@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { Separator } from '@/components/ui/separator.jsx';
 import {
   Newspaper, Calendar, ArrowLeft, Download, Share2, BarChart3,
   TrendingUp, TrendingDown, Minus, Eye, MessageCircle, Heart,
