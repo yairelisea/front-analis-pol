@@ -7,13 +7,14 @@ import { Toaster } from '@/components/ui/toaster';
 import FormSection from '@/components/FormSection';
 import InstructionsSection from '@/components/InstructionsSection';
 import ResultsView from '@/components/ResultsView';
+import DailyReport from '@/components/DailyReport';
 
 // URL de la API (Netlify / local)
 
 const MIN_REQUIRED = MIN_URLS;
 
 function App() {
-  const [view, setView] = useState('form'); // 'form' or 'results'
+  const [view, setView] = useState('form'); // 'form', 'results', or 'dailyReport'
   const [formData, setFormData] = useState({ name: '', office: '', urls: '' });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [data, setData] = useState(null); // { politician, results, summary }
@@ -135,6 +136,10 @@ function App() {
     setProgress({ total: 0, done: 0, percent: 0 });
   };
 
+  const handleShowDailyReport = () => {
+    setView('dailyReport');
+  };
+
   const handleDownloadPdf = useCallback(async () => {
     if (!data?.results?.length) {
       toast({ title: 'Nada que exportar', description: 'Aún no hay resultados.', variant: 'destructive' });
@@ -223,6 +228,7 @@ function App() {
                     isAnalyzing={isAnalyzing}
                     urlCount={urlCount}
                     minRequired={MIN_REQUIRED}
+                    onShowDailyReport={handleShowDailyReport}
                   />
 
                   {/* NUEVO: barra de progreso simple */}
@@ -242,6 +248,13 @@ function App() {
 
                   <InstructionsSection minRequired={MIN_REQUIRED} />
                 </div>
+              </motion.div>
+            ) : view === 'dailyReport' ? (
+              <motion.div key="daily-report" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+                <DailyReport
+                  actorName={formData.name}
+                  onBack={handleNewAnalysis}
+                />
               </motion.div>
             ) : (
               <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>

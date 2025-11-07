@@ -7,7 +7,8 @@ export default function FormSection({
   handleSubmit,
   isAnalyzing,
   urlCount,
-  minRequired
+  minRequired,
+  onShowDailyReport
 }) {
   const onNameChange = (e) => setFormData(prev => ({ ...prev, name: e.target.value }));
   const onOfficeChange = (e) => setFormData(prev => ({ ...prev, office: e.target.value }));
@@ -71,6 +72,14 @@ https://medio.com/articulo...`
           className="px-4 py-2 bg-[#1acc8d] text-white rounded disabled:opacity-60"
         >
           {isAnalyzing ? 'Generando análisis...' : 'Generar análisis'}
+        </button>
+        <button
+          type="button"
+          onClick={onShowDailyReport}
+          disabled={isAnalyzing || !formData.name.trim()}
+          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-60"
+        >
+          Generar Reporte Diario
         </button>
         <button
           type="button"
