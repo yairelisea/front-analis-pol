@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator.jsx';
+import { useToast } from '@/components/ui/use-toast';
 import {
   Newspaper, Calendar, ArrowLeft, Download, Share2, BarChart3,
   TrendingUp, TrendingDown, Minus, Eye, MessageCircle, Heart,
@@ -95,6 +96,8 @@ const DailyReport = ({ actorName, onBack }) => {
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!actorName) {
@@ -133,12 +136,45 @@ const DailyReport = ({ actorName, onBack }) => {
     fetchReport();
   }, [actorName]);
 
-  const handleDownload = () => {
-    console.log('Descargar reporte diario');
+  const handleDownload = async () => {
+    if (!reportData) {
+      toast({ title: 'Error', description: 'No hay datos para descargar.', variant: 'destructive' });
+      return;
+    }
+    
+    setIsDownloading(true);
+    toast({ title: 'Generando PDF...', description: 'El reporte diario se está creando.' });
+
+    try {
+      const response = await fetch(`/api/ai/daily-summary-pdf?q=${encodeURIComponent(actorName)}`);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Error desconocido al generar el PDF.' }));
+        throw new Error(errorData.error);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `reporte_diario_${actorName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast({ title: '¡Éxito!', description: 'El PDF del reporte ha sido descargado.' });
+    } catch (err) {
+      console.error('Error downloading daily report PDF:', err);
+      toast({ title: 'Error al descargar', description: err.message, variant: 'destructive' });
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleShare = () => {
-    console.log('Compartir reporte');
+    // Lógica para compartir (puede ser un modal con un link, etc.)
+    toast({ title: 'Función no implementada', description: 'La opción de compartir aún no está disponible.' });
   };
 
   // Estados de carga y error
@@ -233,9 +269,10 @@ const DailyReport = ({ actorName, onBack }) => {
                     size="sm"
                     className="bg-white text-emerald-600 hover:bg-gray-50 shadow-lg font-semibold"
                     onClick={handleDownload}
+                    disabled={isDownloading}
                   >
                     <Download className="h-4 w-4 mr-2" />
-                    Descargar
+                    {isDownloading ? 'Generando...' : 'Descargar'}
                   </Button>
                 </div>
               </div>
