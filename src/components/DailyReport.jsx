@@ -130,6 +130,9 @@ const DailyReport = ({ actorName, onBack }) => {
 
         const data = await response.json();
         console.log('✅ Data received:', data);
+        console.log('📋 Data keys:', Object.keys(data));
+        console.log('📝 resumen_diario_express:', data.resumen_diario_express);
+        console.log('📰 registro_de_evidencia:', data.registro_de_evidencia);
 
         // Verificar si hay error en la respuesta
         if (data.error) {
@@ -220,6 +223,7 @@ const DailyReport = ({ actorName, onBack }) => {
   }
 
   if (!reportData) {
+    console.log('⚠️ No reportData available');
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center">
         <p className="text-gray-600">No hay datos disponibles.</p>
@@ -227,7 +231,36 @@ const DailyReport = ({ actorName, onBack }) => {
     );
   }
 
+  console.log('🎨 Rendering with reportData:', reportData);
+  console.log('📋 ReportData keys:', Object.keys(reportData));
+
   const { resumen_diario_express, registro_de_evidencia } = reportData;
+
+  console.log('📝 Destructured resumen_diario_express:', resumen_diario_express);
+  console.log('📰 Destructured registro_de_evidencia:', registro_de_evidencia);
+
+  if (!resumen_diario_express && !registro_de_evidencia) {
+    console.log('⚠️ Campos requeridos no encontrados en reportData');
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardContent className="p-6 text-center">
+            <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Estructura de datos inesperada</h3>
+            <p className="text-gray-600 mb-4">
+              El reporte diario no tiene el formato esperado.
+            </p>
+            <details className="text-left text-xs">
+              <summary className="cursor-pointer text-blue-600">Ver datos recibidos</summary>
+              <pre className="mt-2 p-2 bg-gray-100 rounded overflow-auto max-h-40">
+                {JSON.stringify(reportData, null, 2)}
+              </pre>
+            </details>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   const fechaActual = new Date().toLocaleDateString('es-MX', { 
     year: 'numeric', 
     month: 'long', 
