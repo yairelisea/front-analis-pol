@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { API_BASE } from '../config';
+import { transformSmartReportToDashboard } from '../lib/transformData';
 
 const HeroKPI = ({ title, value, change, icon: Icon, trend, color = 'emerald' }) => {
   const trendColor = trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-yellow-600';
@@ -272,7 +273,12 @@ const WeeklyReport = ({
 
         const data = await response.json();
         console.log('✅ Data received from /smart-report:', data);
-        setDashboardData(data);
+
+        // Transformar datos al formato dashboard
+        const transformedData = transformSmartReportToDashboard(data);
+        console.log('🎨 Transformed data:', transformedData);
+
+        setDashboardData(transformedData);
       } catch (err) {
         console.error('❌ Error in fetchReport:', err);
         setError(err.message);

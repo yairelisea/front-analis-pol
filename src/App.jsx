@@ -8,6 +8,7 @@ import FormSection from '@/components/FormSection';
 import InstructionsSection from '@/components/InstructionsSection';
 import ResultsView from '@/components/ResultsView';
 import DailyReport from '@/components/DailyReport';
+import { transformSmartReportToDashboard } from './lib/transformData';
 
 // URL de la API (Netlify / local)
 
@@ -101,9 +102,17 @@ function App() {
       }
 
       const responseData = await res.json();
+      console.log('📥 Response from /smart-report:', responseData);
 
-      // El backend ahora devuelve el reporte completo con summary incluido
-      setData(responseData);
+      // Transformar datos de smart-report al formato dashboard
+      const dashboardData = transformSmartReportToDashboard(responseData);
+      console.log('🎨 Dashboard data after transformation:', dashboardData);
+
+      // Guardar tanto los datos transformados como los originales
+      setData({
+        ...dashboardData,
+        _original: responseData // Mantener referencia a datos originales
+      });
       setAnalyzedUrls(urls); // Guardar URLs para posibles re-cargas
       setProgress({ total: urls.length, done: urls.length, percent: 100 });
       setView('results');
