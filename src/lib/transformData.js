@@ -119,19 +119,27 @@ export function transformSmartReportToDashboard(smartReportData) {
 
   // Campañas activas (extraídas de topics)
   const topicsSet = new Set();
+  const topicMentions = {};
   results.forEach(r => {
-    if (r.ai?.topic) topicsSet.add(r.ai.topic);
+    if (r.ai?.topic) {
+      topicsSet.add(r.ai.topic);
+      topicMentions[r.ai.topic] = (topicMentions[r.ai.topic] || 0) + 1;
+    }
   });
   const campanasActivas = Math.min(topicsSet.size, 5);
 
   const campaigns = topicsSet.size > 0
-    ? Array.from(topicsSet).slice(0, 3).map((topic, idx) => ({
-        nombre: topic,
-        estado: 'Activa',
-        alcance: `${Math.floor(Math.random() * 50 + 20)}K`,
-        engagement: `${(Math.random() * 5 + 2).toFixed(1)}%`,
-        tendencia: idx === 0 ? 'up' : idx === 1 ? 'stable' : 'down'
-      }))
+    ? Array.from(topicsSet).slice(0, 3).map((topic, idx) => {
+        const mentions = topicMentions[topic] || 0;
+        return {
+          name: topic,
+          mentions: mentions,
+          sentiment: 0.5 + (Math.random() * 0.3), // 0.5-0.8
+          trend: idx === 0 ? 'up' : idx === 1 ? 'stable' : 'down',
+          alcance: `${Math.floor(mentions * 2000).toLocaleString()}`,
+          engagement: `${(Math.random() * 5 + 2).toFixed(1)}%`
+        };
+      })
     : [];
 
   // FODA (basado en análisis)
