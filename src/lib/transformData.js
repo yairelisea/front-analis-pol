@@ -74,7 +74,7 @@ export function transformSmartReportToDashboard(smartReportData) {
   }
 
   // Distribución de sentimientos
-  const sentimentDist = [
+  const sentimentDistribution = [
     {
       name: 'Positivo',
       value: summary.sentiments?.positive || 0,
@@ -92,6 +92,25 @@ export function transformSmartReportToDashboard(smartReportData) {
     }
   ];
 
+  // Distribución de narrativa (por stance)
+  const narrativaDistribution = [
+    {
+      name: 'A Favor',
+      value: summary.stances?.favor || 0,
+      color: '#10b981'
+    },
+    {
+      name: 'Neutral',
+      value: summary.stances?.neutral || 0,
+      color: '#f59e0b'
+    },
+    {
+      name: 'En Contra',
+      value: summary.stances?.against || 0,
+      color: '#ef4444'
+    }
+  ];
+
   // Distribución por plataforma
   const platformDist = Object.entries(platformCounts).map(([platform, count]) => ({
     name: platform,
@@ -105,13 +124,15 @@ export function transformSmartReportToDashboard(smartReportData) {
   });
   const campanasActivas = Math.min(topicsSet.size, 5);
 
-  const campaigns = Array.from(topicsSet).slice(0, 3).map((topic, idx) => ({
-    nombre: topic,
-    estado: 'Activa',
-    alcance: `${Math.floor(Math.random() * 50 + 20)}K`,
-    engagement: `${(Math.random() * 5 + 2).toFixed(1)}%`,
-    tendencia: idx === 0 ? 'up' : idx === 1 ? 'stable' : 'down'
-  }));
+  const campaigns = topicsSet.size > 0
+    ? Array.from(topicsSet).slice(0, 3).map((topic, idx) => ({
+        nombre: topic,
+        estado: 'Activa',
+        alcance: `${Math.floor(Math.random() * 50 + 20)}K`,
+        engagement: `${(Math.random() * 5 + 2).toFixed(1)}%`,
+        tendencia: idx === 0 ? 'up' : idx === 1 ? 'stable' : 'down'
+      }))
+    : [];
 
   // FODA (basado en análisis)
   const positiveCount = summary.sentiments?.positive || 0;
@@ -121,36 +142,44 @@ export function transformSmartReportToDashboard(smartReportData) {
   const foda = {
     fortalezas: positiveCount > negativeCount
       ? ['Percepción positiva en redes', 'Alto engagement digital', 'Narrativa coherente']
-      : ['Presencia digital activa', 'Base de seguidores leales'],
+      : positiveCount > 0
+      ? ['Presencia digital activa', 'Base de seguidores leales']
+      : ['Oportunidad de construcción de marca'],
     oportunidades: ['Expansión en nuevas plataformas', 'Colaboraciones estratégicas', 'Contenido multimedia'],
     debilidades: negativeCount > positiveCount
       ? ['Gestión de crisis reactiva', 'Mensajes inconsistentes', 'Baja interacción']
+      : totalMenciones < 5
+      ? ['Alcance limitado', 'Poca visibilidad']
       : ['Alcance limitado en ciertos segmentos'],
     amenazas: ['Desinformación', 'Competencia activa', 'Cambios de algoritmos']
   };
 
   // Actores clave (de entidades)
-  const actoresClave = (summary.top_entities || []).slice(0, 5).map(entity => {
-    // Parsear "Nombre (count)"
-    const match = entity.match(/^(.+?)\s*\((\d+)\)$/);
-    const nombre = match ? match[1] : entity;
-    const menciones = match ? parseInt(match[2]) : 1;
+  const actoresClave = summary.top_entities && summary.top_entities.length > 0
+    ? summary.top_entities.slice(0, 5).map(entity => {
+        // Parsear "Nombre (count)"
+        const match = entity.match(/^(.+?)\s*\((\d+)\)$/);
+        const nombre = match ? match[1] : entity;
+        const menciones = match ? parseInt(match[2]) : 1;
 
-    return {
-      nombre,
-      tipo: 'Político', // Simplificado
-      interacciones: menciones,
-      sentimiento: menciones > 3 ? 'positive' : 'neutral'
-    };
-  });
+        return {
+          nombre,
+          tipo: 'Político', // Simplificado
+          interacciones: menciones,
+          sentimiento: menciones > 3 ? 'positive' : 'neutral'
+        };
+      })
+    : [];
 
   // Actividad reciente (últimas menciones)
-  const actividadReciente = results.slice(0, 10).map(r => ({
-    tipo: r.meta?.platform || 'web',
-    descripcion: r.meta?.title || r.ai?.summary || 'Mención',
-    fecha: r.meta?.published_at || new Date().toISOString(),
-    impacto: r.ai?.sentiment === 'positive' ? 'Alto' : r.ai?.sentiment === 'negative' ? 'Medio' : 'Bajo'
-  }));
+  const recentActivity = results && results.length > 0
+    ? results.slice(0, 10).map(r => ({
+        tipo: r.meta?.platform || 'web',
+        descripcion: r.meta?.title || r.ai?.summary || 'Mención',
+        fecha: r.meta?.published_at || new Date().toISOString(),
+        impacto: r.ai?.sentiment === 'positive' ? 'Alto' : r.ai?.sentiment === 'negative' ? 'Medio' : 'Bajo'
+      }))
+    : [];
 
   // Keywords (de entidades y topics)
   const keywords = [];
@@ -206,19 +235,20 @@ export function transformSmartReportToDashboard(smartReportData) {
 
     // Datos de gráficas
     tendenciaSemanal: trendData,
-    distribucionSentimiento: sentimentDist,
+    sentimentDistribution: sentimentDistribution,
+    narrativaDistribution: narrativaDistribution,
     distribucionPlataforma: platformDist,
 
     // Campañas
-    campaigns,
+    campaigns: campaigns.length > 0 ? campaigns : [],
 
     // FODA
-    foda,
+    foda: foda,
 
     // Actores y actividad
-    actoresClave,
-    actividadReciente,
-    keywords,
+    actoresClave: actoresClave.length > 0 ? actoresClave : [],
+    recentActivity: recentActivity.length > 0 ? recentActivity : [],
+    keywords: keywords.length > 0 ? keywords : [],
 
     // Datos originales (por si se necesitan)
     _rawData: {
