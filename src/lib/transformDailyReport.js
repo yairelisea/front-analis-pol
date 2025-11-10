@@ -52,9 +52,14 @@ export function transformDailySummaryToReport(summaryData, actorName) {
     // Si hay results en el summary
     results.forEach((result, idx) => {
       registro_de_evidencia.push({
-        descripcion: result.meta?.title || result.ai?.summary || `Mención ${idx + 1}`,
+        titulo: result.meta?.title || `Mención ${idx + 1}`,
+        descripcion: result.ai?.summary || 'Sin resumen disponible',
         fecha: result.meta?.published_at || new Date().toISOString().split('T')[0],
-        link: result.meta?.url || '#'
+        link: result.meta?.url || '#',
+        sentiment: result.ai?.sentiment || 'neutral',
+        topic: result.ai?.topic || null,
+        stance: result.ai?.stance || null,
+        platform: result.meta?.platform || 'web'
       });
     });
   } else {

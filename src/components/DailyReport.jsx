@@ -42,7 +42,46 @@ const DailyKPI = ({ title, value, change, trend, icon: Icon }) => {
 // Componente de Noticia Individual
 const NewsCard = ({ noticia }) => {
   const [expanded, setExpanded] = useState(false);
-  
+
+  // Colores según sentimiento
+  const sentimentConfig = {
+    positive: {
+      bg: 'bg-green-50',
+      text: 'text-green-700',
+      border: 'border-green-200',
+      icon: Smile,
+      label: 'Positivo'
+    },
+    neutral: {
+      bg: 'bg-gray-50',
+      text: 'text-gray-700',
+      border: 'border-gray-200',
+      icon: Minus,
+      label: 'Neutral'
+    },
+    negative: {
+      bg: 'bg-red-50',
+      text: 'text-red-700',
+      border: 'border-red-200',
+      icon: Frown,
+      label: 'Negativo'
+    }
+  };
+
+  const stanceConfig = {
+    favor: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'A favor', icon: ThumbsUp },
+    against: { bg: 'bg-orange-50', text: 'text-orange-700', label: 'En contra', icon: ThumbsDown },
+    neutral: { bg: 'bg-gray-50', text: 'text-gray-700', label: 'Neutral', icon: Minus }
+  };
+
+  const sentiment = noticia.sentiment || 'neutral';
+  const sentStyle = sentimentConfig[sentiment] || sentimentConfig.neutral;
+  const SentimentIcon = sentStyle.icon;
+
+  const stance = noticia.stance || 'neutral';
+  const stanceStyle = stanceConfig[stance] || stanceConfig.neutral;
+  const StanceIcon = stanceStyle.icon;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -53,19 +92,49 @@ const NewsCard = ({ noticia }) => {
         {/* Encabezado */}
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex-1">
-            <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 hover:text-emerald-600 transition-colors cursor-pointer">
-              {noticia.descripcion || noticia.title || 'Sin título'}
+            <h3 className="text-lg font-bold text-gray-900 mb-2 hover:text-emerald-600 transition-colors">
+              {noticia.titulo || noticia.title || 'Sin título'}
             </h3>
-            <div className="flex items-center gap-3 text-xs text-gray-500">
+            <div className="flex items-center gap-2 flex-wrap text-xs text-gray-500 mb-3">
               <div className="flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5" />
                 <span>{noticia.fecha || 'Fecha no disponible'}</span>
               </div>
+              {noticia.platform && (
+                <>
+                  <span>•</span>
+                  <Badge variant="outline" className="text-xs">
+                    {noticia.platform}
+                  </Badge>
+                </>
+              )}
+            </div>
+
+            {/* Badges de Sentiment y Stance */}
+            <div className="flex items-center gap-2 mb-3">
+              <Badge className={`${sentStyle.bg} ${sentStyle.text} border ${sentStyle.border}`}>
+                <SentimentIcon className="h-3 w-3 mr-1" />
+                {sentStyle.label}
+              </Badge>
+
+              {noticia.stance && noticia.stance !== 'neutral' && (
+                <Badge className={`${stanceStyle.bg} ${stanceStyle.text}`}>
+                  <StanceIcon className="h-3 w-3 mr-1" />
+                  {stanceStyle.label}
+                </Badge>
+              )}
+
+              {noticia.topic && (
+                <Badge variant="outline" className="text-xs">
+                  <Tag className="h-3 w-3 mr-1" />
+                  {noticia.topic}
+                </Badge>
+              )}
             </div>
           </div>
-          
-          <Button 
-            variant="ghost" 
+
+          <Button
+            variant="ghost"
             size="sm"
             className="text-emerald-600 hover:bg-emerald-50 flex-shrink-0"
             onClick={() => window.open(noticia.link, '_blank')}
@@ -74,18 +143,29 @@ const NewsCard = ({ noticia }) => {
           </Button>
         </div>
 
+        {/* Análisis de IA */}
+        <div className="bg-gradient-to-r from-emerald-50/50 to-teal-50/50 rounded-lg p-3 mb-3 border border-emerald-100">
+          <div className="flex items-start gap-2 mb-2">
+            <Sparkles className="h-4 w-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+            <span className="text-xs font-semibold text-emerald-700">Análisis IA</span>
+          </div>
+          <p className="text-sm text-gray-700 leading-relaxed">
+            {noticia.descripcion || 'Sin análisis disponible'}
+          </p>
+        </div>
+
         <Separator className="my-3 bg-gray-200" />
 
         {/* Link de la fuente */}
         <div className="mt-3">
-          <a 
-            href={noticia.link} 
-            target="_blank" 
+          <a
+            href={noticia.link}
+            target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1"
           >
             <ExternalLink className="h-3 w-3" />
-            Ver artículo completo
+            Ver fuente completa
           </a>
         </div>
       </div>
@@ -360,16 +440,16 @@ const DailyReport = ({ actorName, onBack }) => {
           </Card>
         </motion.div>
 
-        {/* Noticias del Día */}
+        {/* Notas Analizadas */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                 <BarChart3 className="h-6 w-6 text-emerald-600" />
-                Registro de Evidencia
+                Notas Analizadas
               </h2>
               <p className="text-sm text-gray-600 mt-1">
-                {registro_de_evidencia?.length || 0} publicaciones analizadas
+                {registro_de_evidencia?.length || 0} publicaciones analizadas por IA
               </p>
             </div>
           </div>
