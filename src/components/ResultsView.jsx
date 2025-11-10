@@ -202,14 +202,27 @@ const WeeklyReport = ({
   reportData,
   onNewAnalysis
 }) => {
+  console.log('🎬 WeeklyReport component rendered');
+  console.log('📦 Props received:', { actorName, actorOffice, urls, hasReportData: !!reportData });
+  console.log('📊 ReportData structure:', reportData);
+
   const [dashboardData, setDashboardData] = useState(reportData || null);
   const [loading, setLoading] = useState(!reportData);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
+    console.log('🔍 WeeklyReport useEffect triggered');
+    console.log('📦 Current state:', {
+      hasReportData: !!reportData,
+      actorName,
+      urlsLength: urls?.length,
+      dashboardData
+    });
+
     // Si ya tenemos reportData de las props, no hacer fetch
     if (reportData) {
+      console.log('✅ Using reportData from props');
       setDashboardData(reportData);
       setLoading(false);
       return;
@@ -217,6 +230,7 @@ const WeeklyReport = ({
 
     // Si no tenemos nombre de actor, no podemos hacer fetch
     if (!actorName) {
+      console.log('❌ No actorName provided');
       setLoading(false);
       setError("No se ha proporcionado un nombre de actor.");
       return;
@@ -224,25 +238,32 @@ const WeeklyReport = ({
 
     // Si no tenemos URLs, no podemos llamar a /smart-report
     if (!urls || urls.length === 0) {
+      console.log('❌ No URLs provided');
       setLoading(false);
       setError("No se han proporcionado URLs para el análisis. Por favor, genera un nuevo análisis.");
       return;
     }
 
     const fetchReport = async () => {
+      console.log('📡 Fetching smart-report');
       setLoading(true);
       try {
+        const payload = {
+          politician: {
+            name: actorName,
+            office: actorOffice || undefined
+          },
+          urls: urls
+        };
+        console.log('📤 Payload:', payload);
+
         const response = await fetch(`${API_BASE}/smart-report`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            politician: {
-              name: actorName,
-              office: actorOffice || undefined
-            },
-            urls: urls
-          })
+          body: JSON.stringify(payload)
         });
+
+        console.log('📥 Response status:', response.status, response.statusText);
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
@@ -250,10 +271,13 @@ const WeeklyReport = ({
         }
 
         const data = await response.json();
+        console.log('✅ Data received from /smart-report:', data);
         setDashboardData(data);
       } catch (err) {
+        console.error('❌ Error in fetchReport:', err);
         setError(err.message);
       } finally {
+        console.log('🏁 Fetch completed');
         setLoading(false);
       }
     };
@@ -271,6 +295,7 @@ const WeeklyReport = ({
   };
 
   if (loading) {
+    console.log('⏳ Showing loading state');
     return (
       <div className="max-w-[1800px] mx-auto space-y-8">
         <Skeleton className="h-64 w-full" />
@@ -282,12 +307,17 @@ const WeeklyReport = ({
   }
 
   if (error) {
+    console.log('❌ Showing error state:', error);
     return <div>Error: {error}</div>;
   }
 
   if (!dashboardData) {
+    console.log('⚠️ No dashboardData available');
     return <div>No hay datos disponibles.</div>;
   }
+
+  console.log('🎨 Rendering dashboard with data:', dashboardData);
+  console.log('📋 Dashboard data keys:', Object.keys(dashboardData));
 
   return (
     <div className="max-w-[1800px] mx-auto space-y-8">
