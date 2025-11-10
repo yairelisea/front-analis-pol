@@ -11,6 +11,7 @@ import {
   Sparkles, Tag, ExternalLink, Smile, Frown, ThumbsUp, ThumbsDown, AlertCircle
 } from 'lucide-react';
 import { API_BASE } from '../config';
+import { transformDailySummaryToReport } from '../lib/transformDailyReport';
 
 // Componente KPI simplificado para reporte diario
 const DailyKPI = ({ title, value, change, trend, icon: Icon }) => {
@@ -132,15 +133,23 @@ const DailyReport = ({ actorName, onBack }) => {
         console.log('✅ Data received:', data);
         console.log('📋 Data keys:', data ? Object.keys(data) : 'No data');
         console.log('📊 Full data structure:', JSON.stringify(data, null, 2));
-        console.log('📝 resumen_diario_express:', data.resumen_diario_express);
-        console.log('📰 registro_de_evidencia:', data.registro_de_evidencia);
 
         // Verificar si hay error en la respuesta
         if (data.error) {
           throw new Error(data.error);
         }
 
-        setReportData(data);
+        // Transformar datos si vienen en formato summary
+        let transformedData = data;
+        if (!data.resumen_diario_express && (data.total !== undefined || data.sentiments)) {
+          console.log('🔄 Detectado formato summary, transformando...');
+          transformedData = transformDailySummaryToReport(data, actorName);
+        }
+
+        console.log('📝 resumen_diario_express:', transformedData.resumen_diario_express);
+        console.log('📰 registro_de_evidencia:', transformedData.registro_de_evidencia);
+
+        setReportData(transformedData);
       } catch (err) {
         console.error('❌ Error fetching daily report:', err);
         setError(err.message);
