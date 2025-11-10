@@ -94,6 +94,8 @@ const NewsCard = ({ noticia }) => {
 
 // Componente Principal - Reporte Diario
 const DailyReport = ({ actorName, onBack }) => {
+  console.log('🎬 DailyReport component mounted/rendered with actorName:', actorName);
+
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -101,24 +103,33 @@ const DailyReport = ({ actorName, onBack }) => {
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log('🔍 DailyReport useEffect - actorName:', actorName);
+
     if (!actorName) {
+      console.log('❌ No actorName provided');
       setLoading(false);
       setError("No se ha proporcionado un nombre de actor.");
       return;
     }
 
     const fetchReport = async () => {
+      console.log('📡 Fetching daily report for:', actorName);
       setLoading(true);
       setError(null);
 
       try {
-        const response = await fetch(`${API_BASE}/daily-summary?q=${encodeURIComponent(actorName)}`);
+        const url = `${API_BASE}/daily-summary?q=${encodeURIComponent(actorName)}`;
+        console.log('🌐 Calling URL:', url);
+
+        const response = await fetch(url);
+        console.log('📥 Response status:', response.status, response.statusText);
 
         if (!response.ok) {
           throw new Error(`Error en la petición: ${response.statusText}`);
         }
 
         const data = await response.json();
+        console.log('✅ Data received:', data);
 
         // Verificar si hay error en la respuesta
         if (data.error) {
@@ -127,9 +138,10 @@ const DailyReport = ({ actorName, onBack }) => {
 
         setReportData(data);
       } catch (err) {
-        console.error('Error fetching daily report:', err);
+        console.error('❌ Error fetching daily report:', err);
         setError(err.message);
       } finally {
+        console.log('🏁 Fetch completed');
         setLoading(false);
       }
     };
