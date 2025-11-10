@@ -195,26 +195,60 @@ const ActivityItem = ({ activity }) => {
   );
 };
 
-const WeeklyReport = ({ politicianName: actorName, onNewAnalysis }) => {
-  const [dashboardData, setDashboardData] = useState(null);
-  const [loading, setLoading] = useState(true);
+const WeeklyReport = ({
+  politicianName: actorName,
+  politicianOffice: actorOffice,
+  urls,
+  reportData,
+  onNewAnalysis
+}) => {
+  const [dashboardData, setDashboardData] = useState(reportData || null);
+  const [loading, setLoading] = useState(!reportData);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
+    // Si ya tenemos reportData de las props, no hacer fetch
+    if (reportData) {
+      setDashboardData(reportData);
+      setLoading(false);
+      return;
+    }
+
+    // Si no tenemos nombre de actor, no podemos hacer fetch
     if (!actorName) {
       setLoading(false);
       setError("No se ha proporcionado un nombre de actor.");
       return;
     }
 
+    // Si no tenemos URLs, no podemos llamar a /smart-report
+    if (!urls || urls.length === 0) {
+      setLoading(false);
+      setError("No se han proporcionado URLs para el análisis. Por favor, genera un nuevo análisis.");
+      return;
+    }
+
     const fetchReport = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${API_BASE}/weekly-report?q=${encodeURIComponent(actorName)}`);
+        const response = await fetch(`${API_BASE}/smart-report`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            politician: {
+              name: actorName,
+              office: actorOffice || undefined
+            },
+            urls: urls
+          })
+        });
+
         if (!response.ok) {
-          throw new Error(`Error en la petición: ${response.statusText}`);
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.detail || `Error en la petición: ${response.statusText}`);
         }
+
         const data = await response.json();
         setDashboardData(data);
       } catch (err) {
@@ -225,7 +259,7 @@ const WeeklyReport = ({ politicianName: actorName, onNewAnalysis }) => {
     };
 
     fetchReport();
-  }, [actorName]);
+  }, [actorName, actorOffice, urls, reportData]);
 
   const handleRefresh = () => {
     setRefreshing(true);

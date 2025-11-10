@@ -17,8 +17,9 @@ function App() {
   const [view, setView] = useState('form'); // 'form', 'results', or 'dailyReport'
   const [formData, setFormData] = useState({ name: '', office: '', urls: '' });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [data, setData] = useState(null); // { politician, results, summary }
+  const [data, setData] = useState(null); // { politician, results, summary, metadata }
   const [urlCount, setUrlCount] = useState(0);
+  const [analyzedUrls, setAnalyzedUrls] = useState([]); // URLs del último análisis
   const { toast } = useToast();
   const resultsRef = useRef(null);
 
@@ -79,7 +80,7 @@ function App() {
         });
       }, 2000);
 
-      const res = await fetch(`${API_BASE}/analyze-json`, {
+      const res = await fetch(`${API_BASE}/smart-report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -103,12 +104,19 @@ function App() {
 
       // El backend ahora devuelve el reporte completo con summary incluido
       setData(responseData);
+      setAnalyzedUrls(urls); // Guardar URLs para posibles re-cargas
       setProgress({ total: urls.length, done: urls.length, percent: 100 });
       setView('results');
 
+      // Verificar si es análisis nuevo o recuperado de BD
+      const isCached = responseData.metadata?.is_cached || false;
+      const message = isCached
+        ? 'Reporte recuperado de la base de datos'
+        : `Se analizaron ${urls.length} URLs exitosamente`;
+
       toast({
-        title: '¡Análisis completado!',
-        description: `Se analizaron ${urls.length} URLs exitosamente.`
+        title: isCached ? '✅ Reporte encontrado!' : '¡Análisis completado!',
+        description: message
       });
     } catch (err) {
       console.error('Fetch error:', err);
@@ -254,8 +262,11 @@ function App() {
               <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
                 <ResultsView
                   politicianName={data?.politician?.name || formData.name}
+                  politicianOffice={data?.politician?.office || formData.office}
+                  urls={analyzedUrls}
                   results={data?.results || []}
                   summary={data?.summary || null}
+                  reportData={data} // Pasar todos los datos del reporte
                   sentimentSummary={getSentimentSummary} // NUEVO prop
                   getBadgeVariant={getBadgeVariant}
                   formatDate={formatDate}
