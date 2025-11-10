@@ -130,7 +130,8 @@ const DailyReport = ({ actorName, onBack }) => {
 
         const data = await response.json();
         console.log('✅ Data received:', data);
-        console.log('📋 Data keys:', Object.keys(data));
+        console.log('📋 Data keys:', data ? Object.keys(data) : 'No data');
+        console.log('📊 Full data structure:', JSON.stringify(data, null, 2));
         console.log('📝 resumen_diario_express:', data.resumen_diario_express);
         console.log('📰 registro_de_evidencia:', data.registro_de_evidencia);
 
