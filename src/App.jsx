@@ -8,6 +8,7 @@ import FormSection from '@/components/FormSection';
 import InstructionsSection from '@/components/InstructionsSection';
 import ResultsView from '@/components/ResultsView';
 import DailyReport from '@/components/DailyReport';
+import { transformSmartReportToDashboard } from './lib/transformData';
 
 // URL de la API (Netlify / local)
 
@@ -17,20 +18,14 @@ function App() {
   const [view, setView] = useState('form'); // 'form', 'results', or 'dailyReport'
   const [formData, setFormData] = useState({ name: '', office: '', urls: '' });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [data, setData] = useState(null); // { politician, results, summary }
+  const [data, setData] = useState(null); // { politician, results, summary, metadata }
   const [urlCount, setUrlCount] = useState(0);
+  const [analyzedUrls, setAnalyzedUrls] = useState([]); // URLs del último análisis
   const { toast } = useToast();
   const resultsRef = useRef(null);
 
-  // --- NUEVO: estado de progreso (objetivo) y utilidad chunk ---
+  // Estado de progreso
   const [progress, setProgress] = useState({ total: 0, done: 0, percent: 0 });
-
-  function chunk(arr, size) {
-    const out = [];
-    for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
-    return out;
-  }
-  // --- fin progreso ---
 
   // Normaliza: 1 URL por línea, añade https si falta, ignora líneas con 0 o >1 URLs, elimina duplicados
   // REEMPLAZO: normalizeUrls más permisiva (soporta \n , ;)
@@ -64,67 +59,83 @@ function App() {
 
     setIsAnalyzing(true);
     setData(null);
+    setProgress({ total: urls.length, done: 0, percent: 0 });
 
     try {
-      const chunks = chunk(urls, 6); // 6–8 funciona bien en Render
-      setProgress({ total: urls.length, done: 0, percent: 0 });
+      const payload = {
+        politician: {
+          name: formData.name.trim(),
+          office: formData.office.trim() || undefined
+        },
+        urls: urls
+      };
 
-      let aggregate = [];
-      for (const part of chunks) {
-        const payload = { politician: { name: formData.name.trim(), office: formData.office.trim() || undefined }, urls: part };
-
-        const res = await fetch(`${API_BASE}/analyze-chunk`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) {
-          const txt = await res.text().catch(() => '');
-          const detail = (() => { try { return JSON.parse(txt)?.detail || txt; } catch { return txt || 'Error del servidor'; }})();
-          throw new Error(detail);
-        }
-
-        const chunkData = await res.json();
-        aggregate = aggregate.concat(chunkData.results || []);
-
+      // Simulación de progreso (el backend procesa en background)
+      const progressInterval = setInterval(() => {
         setProgress(prev => {
-          const done = Math.min(prev.total, prev.done + part.length);
-          const percent = prev.total ? Math.round((done * 100) / prev.total) : 0;
-          return { ...prev, done, percent };
+          if (prev.percent >= 95) return prev; // No llegar a 100% hasta recibir respuesta
+          return {
+            ...prev,
+            percent: Math.min(95, prev.percent + 5)
+          };
         });
+      }, 2000);
+
+      const res = await fetch(`${API_BASE}/smart-report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      clearInterval(progressInterval);
+
+      if (!res.ok) {
+        const txt = await res.text().catch(() => '');
+        const detail = (() => {
+          try {
+            return JSON.parse(txt)?.detail || txt;
+          } catch {
+            return txt || 'Error del servidor';
+          }
+        })();
+        throw new Error(detail);
       }
 
-      // Calcula summary en el front
-      const sentiments = {};
-      const stances = {};
-      const entities = {};
-      for (const r of aggregate) {
-        const s = (r.ai?.sentiment || 'neutral').toLowerCase();
-        sentiments[s] = (sentiments[s] || 0) + 1;
-        const st = (r.ai?.stance || 'none').toLowerCase();
-        stances[st] = (stances[st] || 0) + 1;
-        for (const e of (r.ai?.entities || [])) {
-          if (!e) continue;
-          entities[e] = (entities[e] || 0) + 1;
-        }
-      }
-      const total = aggregate.length;
-      const predominant = Object.keys(sentiments).sort((a,b)=>(sentiments[b]||0)-(sentiments[a]||0))[0] || 'neutral';
-      const top_entities = Object.entries(entities)
-        .sort((a,b)=>b[1]-a[1]).slice(0,5).map(([n,c])=>`${n} (${c})`);
+      const responseData = await res.json();
+      console.log('📥 Response from /smart-report:', responseData);
 
-      const summary = { total, sentiments, predominant, stances, top_entities };
-      setData({ politician: { name: formData.name.trim(), office: formData.office.trim() || undefined }, results: aggregate, summary });
+      // Transformar datos de smart-report al formato dashboard
+      const dashboardData = transformSmartReportToDashboard(responseData);
+      console.log('🎨 Dashboard data after transformation:', dashboardData);
+
+      // Guardar tanto los datos transformados como los originales
+      setData({
+        ...dashboardData,
+        _original: responseData // Mantener referencia a datos originales
+      });
+      setAnalyzedUrls(urls); // Guardar URLs para posibles re-cargas
+      setProgress({ total: urls.length, done: urls.length, percent: 100 });
       setView('results');
 
-      toast({ title: '¡Análisis completado!', description: `Se analizaron ${aggregate.length} URLs en ${chunks.length} lotes.` });
+      // Verificar si es análisis nuevo o recuperado de BD
+      const isCached = responseData.metadata?.is_cached || false;
+      const message = isCached
+        ? 'Reporte recuperado de la base de datos'
+        : `Se analizaron ${urls.length} URLs exitosamente`;
+
+      toast({
+        title: isCached ? '✅ Reporte encontrado!' : '¡Análisis completado!',
+        description: message
+      });
     } catch (err) {
       console.error('Fetch error:', err);
-      toast({ title: 'Error en el análisis', description: err.message || 'No se pudo completar el análisis.', variant: 'destructive' });
+      toast({
+        title: 'Error en el análisis',
+        description: err.message || 'No se pudo completar el análisis.',
+        variant: 'destructive'
+      });
     } finally {
       setIsAnalyzing(false);
-      setProgress(p => ({ ...p, percent: p.done === p.total ? 100 : p.percent }));
     }
   }, [formData, normalizeUrls, toast]);
 
@@ -260,8 +271,11 @@ function App() {
               <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
                 <ResultsView
                   politicianName={data?.politician?.name || formData.name}
+                  politicianOffice={data?.politician?.office || formData.office}
+                  urls={analyzedUrls}
                   results={data?.results || []}
                   summary={data?.summary || null}
+                  reportData={data} // Pasar todos los datos del reporte
                   sentimentSummary={getSentimentSummary} // NUEVO prop
                   getBadgeVariant={getBadgeVariant}
                   formatDate={formatDate}
