@@ -22,15 +22,8 @@ function App() {
   const { toast } = useToast();
   const resultsRef = useRef(null);
 
-  // --- NUEVO: estado de progreso (objetivo) y utilidad chunk ---
+  // Estado de progreso
   const [progress, setProgress] = useState({ total: 0, done: 0, percent: 0 });
-
-  function chunk(arr, size) {
-    const out = [];
-    for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
-    return out;
-  }
-  // --- fin progreso ---
 
   // Normaliza: 1 URL por línea, añade https si falta, ignora líneas con 0 o >1 URLs, elimina duplicados
   // REEMPLAZO: normalizeUrls más permisiva (soporta \n , ;)
@@ -64,67 +57,68 @@ function App() {
 
     setIsAnalyzing(true);
     setData(null);
+    setProgress({ total: urls.length, done: 0, percent: 0 });
 
     try {
-      const chunks = chunk(urls, 6); // 6–8 funciona bien en Render
-      setProgress({ total: urls.length, done: 0, percent: 0 });
+      const payload = {
+        politician: {
+          name: formData.name.trim(),
+          office: formData.office.trim() || undefined
+        },
+        urls: urls
+      };
 
-      let aggregate = [];
-      for (const part of chunks) {
-        const payload = { politician: { name: formData.name.trim(), office: formData.office.trim() || undefined }, urls: part };
-
-        const res = await fetch(`${API_BASE}/analyze-chunk`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) {
-          const txt = await res.text().catch(() => '');
-          const detail = (() => { try { return JSON.parse(txt)?.detail || txt; } catch { return txt || 'Error del servidor'; }})();
-          throw new Error(detail);
-        }
-
-        const chunkData = await res.json();
-        aggregate = aggregate.concat(chunkData.results || []);
-
+      // Simulación de progreso (el backend procesa en background)
+      const progressInterval = setInterval(() => {
         setProgress(prev => {
-          const done = Math.min(prev.total, prev.done + part.length);
-          const percent = prev.total ? Math.round((done * 100) / prev.total) : 0;
-          return { ...prev, done, percent };
+          if (prev.percent >= 95) return prev; // No llegar a 100% hasta recibir respuesta
+          return {
+            ...prev,
+            percent: Math.min(95, prev.percent + 5)
+          };
         });
+      }, 2000);
+
+      const res = await fetch(`${API_BASE}/analyze-json`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      clearInterval(progressInterval);
+
+      if (!res.ok) {
+        const txt = await res.text().catch(() => '');
+        const detail = (() => {
+          try {
+            return JSON.parse(txt)?.detail || txt;
+          } catch {
+            return txt || 'Error del servidor';
+          }
+        })();
+        throw new Error(detail);
       }
 
-      // Calcula summary en el front
-      const sentiments = {};
-      const stances = {};
-      const entities = {};
-      for (const r of aggregate) {
-        const s = (r.ai?.sentiment || 'neutral').toLowerCase();
-        sentiments[s] = (sentiments[s] || 0) + 1;
-        const st = (r.ai?.stance || 'none').toLowerCase();
-        stances[st] = (stances[st] || 0) + 1;
-        for (const e of (r.ai?.entities || [])) {
-          if (!e) continue;
-          entities[e] = (entities[e] || 0) + 1;
-        }
-      }
-      const total = aggregate.length;
-      const predominant = Object.keys(sentiments).sort((a,b)=>(sentiments[b]||0)-(sentiments[a]||0))[0] || 'neutral';
-      const top_entities = Object.entries(entities)
-        .sort((a,b)=>b[1]-a[1]).slice(0,5).map(([n,c])=>`${n} (${c})`);
+      const responseData = await res.json();
 
-      const summary = { total, sentiments, predominant, stances, top_entities };
-      setData({ politician: { name: formData.name.trim(), office: formData.office.trim() || undefined }, results: aggregate, summary });
+      // El backend ahora devuelve el reporte completo con summary incluido
+      setData(responseData);
+      setProgress({ total: urls.length, done: urls.length, percent: 100 });
       setView('results');
 
-      toast({ title: '¡Análisis completado!', description: `Se analizaron ${aggregate.length} URLs en ${chunks.length} lotes.` });
+      toast({
+        title: '¡Análisis completado!',
+        description: `Se analizaron ${urls.length} URLs exitosamente.`
+      });
     } catch (err) {
       console.error('Fetch error:', err);
-      toast({ title: 'Error en el análisis', description: err.message || 'No se pudo completar el análisis.', variant: 'destructive' });
+      toast({
+        title: 'Error en el análisis',
+        description: err.message || 'No se pudo completar el análisis.',
+        variant: 'destructive'
+      });
     } finally {
       setIsAnalyzing(false);
-      setProgress(p => ({ ...p, percent: p.done === p.total ? 100 : p.percent }));
     }
   }, [formData, normalizeUrls, toast]);
 
