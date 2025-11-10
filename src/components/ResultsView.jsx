@@ -15,6 +15,7 @@ import {
   ArrowUpRight, Clock, Star, Zap, BarChart3
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { API_BASE } from '../config';
 
 const HeroKPI = ({ title, value, change, icon: Icon, trend, color = 'emerald' }) => {
   const trendColor = trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-yellow-600';
@@ -210,7 +211,7 @@ const WeeklyReport = ({ politicianName: actorName, onNewAnalysis }) => {
     const fetchReport = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`/api/ai/weekly-report?q=${encodeURIComponent(actorName)}`);
+        const response = await fetch(`${API_BASE}/weekly-report?q=${encodeURIComponent(actorName)}`);
         if (!response.ok) {
           throw new Error(`Error en la petición: ${response.statusText}`);
         }
