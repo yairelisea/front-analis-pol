@@ -199,9 +199,16 @@ export default defineConfig({
 	server: {
 		cors: true,
 		headers: {
-			'Cross-Origin-Embedder-Policy': 'credentialless',
+			'Cross-Origin-Embedder-Policy': 'unsafe-none',
 		},
 		allowedHosts: true,
+		proxy: {
+			'/api': {
+				target: process.env.VITE_API_BASE || 'https://analisis-pol-b1ap.onrender.com',
+				changeOrigin: true,
+				rewrite: (path) => path.replace(/^\/api/, '')
+			}
+		}
 	},
 	resolve: {
 		extensions: ['.jsx', '.js', '.tsx', '.ts', '.json', ],
