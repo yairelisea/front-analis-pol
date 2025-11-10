@@ -234,7 +234,7 @@ export function transformSmartReportToDashboard(smartReportData) {
     },
 
     // Datos de gráficas
-    tendenciaSemanal: trendData,
+    weeklyTrend: trendData,
     sentimentDistribution: sentimentDistribution,
     narrativaDistribution: narrativaDistribution,
     distribucionPlataforma: platformDist,
