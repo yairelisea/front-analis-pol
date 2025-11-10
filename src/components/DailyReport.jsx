@@ -10,6 +10,7 @@ import {
   TrendingUp, TrendingDown, Minus, Eye, MessageCircle, Heart,
   Sparkles, Tag, ExternalLink, Smile, Frown, ThumbsUp, ThumbsDown, AlertCircle
 } from 'lucide-react';
+import { API_BASE } from '../config';
 
 // Componente KPI simplificado para reporte diario
 const DailyKPI = ({ title, value, change, trend, icon: Icon }) => {
@@ -109,21 +110,21 @@ const DailyReport = ({ actorName, onBack }) => {
     const fetchReport = async () => {
       setLoading(true);
       setError(null);
-      
+
       try {
-        const response = await fetch(`/api/ai/daily-summary?q=${encodeURIComponent(actorName)}`);
-        
+        const response = await fetch(`${API_BASE}/daily-summary?q=${encodeURIComponent(actorName)}`);
+
         if (!response.ok) {
           throw new Error(`Error en la petición: ${response.statusText}`);
         }
-        
+
         const data = await response.json();
-        
+
         // Verificar si hay error en la respuesta
         if (data.error) {
           throw new Error(data.error);
         }
-        
+
         setReportData(data);
       } catch (err) {
         console.error('Error fetching daily report:', err);
@@ -141,12 +142,12 @@ const DailyReport = ({ actorName, onBack }) => {
       toast({ title: 'Error', description: 'No hay datos para descargar.', variant: 'destructive' });
       return;
     }
-    
+
     setIsDownloading(true);
     toast({ title: 'Generando PDF...', description: 'El reporte diario se está creando.' });
 
     try {
-      const response = await fetch(`/api/ai/daily-summary-pdf?q=${encodeURIComponent(actorName)}`);
+      const response = await fetch(`${API_BASE}/daily-summary-pdf?q=${encodeURIComponent(actorName)}`);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Error desconocido al generar el PDF.' }));
