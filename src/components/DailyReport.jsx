@@ -10,6 +10,8 @@ import {
   TrendingUp, TrendingDown, Minus, Eye, MessageCircle, Heart,
   Sparkles, Tag, ExternalLink, Smile, Frown, ThumbsUp, ThumbsDown, AlertCircle
 } from 'lucide-react';
+import { API_BASE } from '../config';
+import { transformDailySummaryToReport } from '../lib/transformDailyReport';
 
 // Componente KPI simplificado para reporte diario
 const DailyKPI = ({ title, value, change, trend, icon: Icon }) => {
@@ -93,6 +95,8 @@ const NewsCard = ({ noticia }) => {
 
 // Componente Principal - Reporte Diario
 const DailyReport = ({ actorName, onBack }) => {
+  console.log('🎬 DailyReport component mounted/rendered with actorName:', actorName);
+
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -100,35 +104,57 @@ const DailyReport = ({ actorName, onBack }) => {
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log('🔍 DailyReport useEffect - actorName:', actorName);
+
     if (!actorName) {
+      console.log('❌ No actorName provided');
       setLoading(false);
       setError("No se ha proporcionado un nombre de actor.");
       return;
     }
 
     const fetchReport = async () => {
+      console.log('📡 Fetching daily report for:', actorName);
       setLoading(true);
       setError(null);
-      
+
       try {
-        const response = await fetch(`/api/ai/daily-summary?q=${encodeURIComponent(actorName)}`);
-        
+        const url = `${API_BASE}/daily-summary?q=${encodeURIComponent(actorName)}`;
+        console.log('🌐 Calling URL:', url);
+
+        const response = await fetch(url);
+        console.log('📥 Response status:', response.status, response.statusText);
+
         if (!response.ok) {
           throw new Error(`Error en la petición: ${response.statusText}`);
         }
-        
+
         const data = await response.json();
-        
+        console.log('✅ Data received:', data);
+        console.log('📋 Data keys:', data ? Object.keys(data) : 'No data');
+        console.log('📊 Full data structure:', JSON.stringify(data, null, 2));
+
         // Verificar si hay error en la respuesta
         if (data.error) {
           throw new Error(data.error);
         }
-        
-        setReportData(data);
+
+        // Transformar datos si vienen en formato summary
+        let transformedData = data;
+        if (!data.resumen_diario_express && (data.total !== undefined || data.sentiments)) {
+          console.log('🔄 Detectado formato summary, transformando...');
+          transformedData = transformDailySummaryToReport(data, actorName);
+        }
+
+        console.log('📝 resumen_diario_express:', transformedData.resumen_diario_express);
+        console.log('📰 registro_de_evidencia:', transformedData.registro_de_evidencia);
+
+        setReportData(transformedData);
       } catch (err) {
-        console.error('Error fetching daily report:', err);
+        console.error('❌ Error fetching daily report:', err);
         setError(err.message);
       } finally {
+        console.log('🏁 Fetch completed');
         setLoading(false);
       }
     };
@@ -141,12 +167,12 @@ const DailyReport = ({ actorName, onBack }) => {
       toast({ title: 'Error', description: 'No hay datos para descargar.', variant: 'destructive' });
       return;
     }
-    
+
     setIsDownloading(true);
     toast({ title: 'Generando PDF...', description: 'El reporte diario se está creando.' });
 
     try {
-      const response = await fetch(`/api/ai/daily-summary-pdf?q=${encodeURIComponent(actorName)}`);
+      const response = await fetch(`${API_BASE}/daily-summary-pdf?q=${encodeURIComponent(actorName)}`);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Error desconocido al generar el PDF.' }));
@@ -207,6 +233,7 @@ const DailyReport = ({ actorName, onBack }) => {
   }
 
   if (!reportData) {
+    console.log('⚠️ No reportData available');
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center">
         <p className="text-gray-600">No hay datos disponibles.</p>
@@ -214,7 +241,36 @@ const DailyReport = ({ actorName, onBack }) => {
     );
   }
 
+  console.log('🎨 Rendering with reportData:', reportData);
+  console.log('📋 ReportData keys:', Object.keys(reportData));
+
   const { resumen_diario_express, registro_de_evidencia } = reportData;
+
+  console.log('📝 Destructured resumen_diario_express:', resumen_diario_express);
+  console.log('📰 Destructured registro_de_evidencia:', registro_de_evidencia);
+
+  if (!resumen_diario_express && !registro_de_evidencia) {
+    console.log('⚠️ Campos requeridos no encontrados en reportData');
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardContent className="p-6 text-center">
+            <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Estructura de datos inesperada</h3>
+            <p className="text-gray-600 mb-4">
+              El reporte diario no tiene el formato esperado.
+            </p>
+            <details className="text-left text-xs">
+              <summary className="cursor-pointer text-blue-600">Ver datos recibidos</summary>
+              <pre className="mt-2 p-2 bg-gray-100 rounded overflow-auto max-h-40">
+                {JSON.stringify(reportData, null, 2)}
+              </pre>
+            </details>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   const fechaActual = new Date().toLocaleDateString('es-MX', { 
     year: 'numeric', 
     month: 'long', 
