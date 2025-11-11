@@ -74,34 +74,22 @@ body {
     display: none !important;
   }
 
-  /* Configuración de página Carta (Letter) */
+  /* Configuración de página */
   @page {
-    size: letter;
-    margin: 1.5cm 1.2cm;
+    size: auto;
+    margin: 1cm;
   }
 
   body {
     background: white !important;
-    width: 100%;
-    margin: 0;
-    padding: 0;
   }
 
-  /* NO forzar todo a blanco - mantener colores originales */
+  /* Eliminar sombras y animaciones */
   * {
     box-shadow: none !important;
     text-shadow: none !important;
-  }
-
-  /* Ocultar animaciones */
-  * {
     animation: none !important;
     transition: none !important;
-  }
-
-  /* Títulos - mantener colores */
-  h1, h2, h3, h4, h5, h6 {
-    page-break-after: avoid;
   }
 
   /* Evitar que las tarjetas se partan */
@@ -109,148 +97,22 @@ body {
   [class*="Card"] {
     page-break-inside: avoid;
     break-inside: avoid;
-    margin-bottom: 0.4rem !important;
   }
 
-  /* Asegurar que las tablas se vean bien */
+  /* Títulos */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+
+  /* Tablas */
   table {
     border-collapse: collapse;
-    width: 100%;
     page-break-inside: avoid;
   }
 
-  table, th, td {
-    border: 1px solid #ddd !important;
-  }
-
-  /* Ajustar grids para impresión */
-  .grid {
-    display: grid;
-    gap: 0.4rem !important;
-  }
-
-  /* Ajustar columnas en grids - mantener más información visible */
-  .grid-cols-4 {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-
-  .grid-cols-3 {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-
-  .grid-cols-12 .col-span-5,
-  .grid-cols-12 .col-span-4,
-  .grid-cols-12 .col-span-3 {
-    grid-column: span 6 !important;
-  }
-
-  /* Ajustar el tamaño de los gráficos - mantener legibles */
-  .recharts-wrapper {
-    max-height: 250px !important;
-    width: 100% !important;
-  }
-
-  /* Tamaño de gráficos grandes - considerable y legible */
-  .recharts-surface {
-    max-height: 250px !important;
-  }
-
-  /* Mantener badges visibles con colores */
-  .badge,
-  [class*="Badge"] {
-    padding: 2px 6px !important;
-    display: inline-block;
-    font-size: 9pt !important;
-  }
-
-  /* Enlaces */
+  /* Enlaces clickeables */
   a {
     text-decoration: underline;
-  }
-
-  /* Maximizar el uso del espacio */
-  .max-w-\[1800px\],
-  .max-w-\[1400px\],
-  .max-w-7xl,
-  .max-w-6xl {
-    max-width: 100% !important;
-  }
-
-  /* Reducir padding y spacing */
-  .p-8 {
-    padding: 0.5rem !important;
-  }
-
-  .p-6 {
-    padding: 0.75rem !important;
-  }
-
-  .p-5 {
-    padding: 0.6rem !important;
-  }
-
-  .p-4 {
-    padding: 0.5rem !important;
-  }
-
-  .space-y-8 > * + *,
-  .space-y-6 > * + * {
-    margin-top: 0.5rem !important;
-  }
-
-  .space-y-4 > * + *,
-  .space-y-3 > * + * {
-    margin-top: 0.3rem !important;
-  }
-
-  .gap-6 {
-    gap: 0.5rem !important;
-  }
-
-  .gap-4 {
-    gap: 0.3rem !important;
-  }
-
-  /* Ajustar tamaño de fuente */
-  p, span, div, li {
-    font-size: 9pt !important;
-    line-height: 1.3 !important;
-  }
-
-  h1 {
-    font-size: 18pt !important;
-    margin-bottom: 0.3rem !important;
-  }
-
-  h2 {
-    font-size: 14pt !important;
-    margin-bottom: 0.3rem !important;
-  }
-
-  h3 {
-    font-size: 12pt !important;
-    margin-bottom: 0.3rem !important;
-  }
-
-  h4, h5, h6 {
-    font-size: 10pt !important;
-    margin-bottom: 0.2rem !important;
-  }
-
-  /* Reducir tamaño de íconos */
-  svg {
-    width: 12px !important;
-    height: 12px !important;
-  }
-
-  /* Cards más compactas */
-  [class*="CardContent"] {
-    padding: 0.5rem !important;
-  }
-
-  [class*="CardHeader"] {
-    padding: 0.5rem !important;
-    padding-bottom: 0.3rem !important;
   }
 
   /* Evitar quiebres de página no deseados */
@@ -261,26 +123,7 @@ body {
     break-inside: avoid;
   }
 
-  /* Artículos analizados - hacerlos más compactos */
-  .grid-cols-1 {
-    gap: 0.3rem !important;
-  }
-
-  /* FODA y secciones con múltiples items */
-  .space-y-4 {
-    gap: 0.2rem !important;
-  }
-
-  /* Header del reporte - mantener colores originales */
-  .report-header,
-  [class*="from-slate"],
-  [class*="from-emerald"],
-  [class*="bg-gradient"] {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* Forzar que se impriman los colores de fondo */
+  /* Forzar que se impriman los colores */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
