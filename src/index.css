@@ -77,19 +77,28 @@ body {
     margin: 0.5cm;
   }
 
+  html,
   body {
     background: white !important;
+    background-color: white !important;
     margin: 0 !important;
     padding: 0 !important;
   }
 
-  /* Forzar visibilidad del contenido */
+  /* Forzar visibilidad del contenido y fondo blanco */
   #root,
   .printable-content,
   main {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
+    background: white !important;
+    background-color: white !important;
+  }
+
+  /* Asegurar que todos los contenedores tengan fondo blanco por defecto */
+  div:not([class*="bg-"]):not([class*="from-"]):not([class*="to-"]) {
+    background: transparent !important;
   }
 
   /* Eliminar solo sombras y animaciones */
