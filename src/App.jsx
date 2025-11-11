@@ -9,6 +9,7 @@ import InstructionsSection from '@/components/InstructionsSection';
 import ResultsView from '@/components/ResultsView';
 import DailyReport from '@/components/DailyReport';
 import ReportsLayout from '@/components/ReportsLayout';
+import { getAnalyses, getAnalysisById } from './lib/api';
 import { transformSmartReportToDashboard } from './lib/transformData';
 import { saveWeeklyReport, saveDailyReport, getAllPoliticians } from './lib/storage';
 
@@ -17,10 +18,11 @@ import { saveWeeklyReport, saveDailyReport, getAllPoliticians } from './lib/stor
 const MIN_REQUIRED = MIN_URLS;
 
 function App() {
-  const [view, setView] = useState('form'); // 'form', 'results', 'dailyReport', or 'reports'
+  const [view, setView] = useState('results'); // 'form', 'results', 'dailyReport', or 'reports'
   const [formData, setFormData] = useState({ name: '', office: '', urls: '' });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [data, setData] = useState(null); // { politician, results, summary, metadata }
+  const [analyses, setAnalyses] = useState([]); // List of available analyses
   const [urlCount, setUrlCount] = useState(0);
   const [analyzedUrls, setAnalyzedUrls] = useState([]); // URLs del último análisis
   const { toast } = useToast();
@@ -29,13 +31,49 @@ function App() {
   // Estado de progreso
   const [progress, setProgress] = useState({ total: 0, done: 0, percent: 0 });
 
-  // Al iniciar, verificar si hay políticos guardados
+  // Cargar análisis desde la API al montar
   useEffect(() => {
-    const politicians = getAllPoliticians();
-    if (politicians.length > 0) {
-      setView('reports'); // Ir directamente a la vista de reportes
+    const loadAnalyses = async () => {
+      try {
+        const analysesList = await getAnalyses();
+        setAnalyses(analysesList);
+        if (analysesList.length > 0) {
+          // Load the latest analysis by default
+          handleAnalysisSelection(analysesList[0].id);
+        }
+      } catch (error) {
+        console.error('Error loading analyses:', error);
+        toast({
+          title: 'Error al cargar análisis',
+          description: 'No se pudieron cargar los análisis anteriores.',
+          variant: 'destructive',
+        });
+      }
+    };
+
+    if (view === 'results') {
+      loadAnalyses();
     }
-  }, []);
+  }, [view]);
+
+  const handleAnalysisSelection = async (id) => {
+    try {
+      const analysisData = await getAnalysisById(id);
+      const dashboardData = transformSmartReportToDashboard(analysisData);
+      setData({
+        ...dashboardData,
+        _original: analysisData,
+      });
+      setAnalyzedUrls(analysisData.urls || []);
+    } catch (error) {
+      console.error('Error loading analysis:', error);
+      toast({
+        title: 'Error al cargar el análisis',
+        description: `No se pudo cargar el análisis seleccionado.`,
+        variant: 'destructive',
+      });
+    }
+  };
 
   // Normaliza: 1 URL por línea, añade https si falta, ignora líneas con 0 o >1 URLs, elimina duplicados
   // REEMPLAZO: normalizeUrls más permisiva (soporta \n , ;)
@@ -309,6 +347,9 @@ function App() {
                   onNewAnalysis={handleNewAnalysis}
                   onDownloadPdf={handleDownloadPdf}
                   resultsRef={resultsRef}
+                  analyses={analyses}
+                  onAnalysisSelect={handleAnalysisSelection}
+                  selectedAnalysisId={data?._original?.id}
                 />
               </motion.div>
             )}
