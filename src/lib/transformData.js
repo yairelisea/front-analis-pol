@@ -57,21 +57,50 @@ export function transformSmartReportToDashboard(smartReportData) {
     negative: `${politician?.name || 'El actor político'} enfrenta desafíos de percepción en medios digitales. Se recomienda estrategia de comunicación proactiva y gestión de crisis.`
   };
 
-  // Calcular tendencias (simuladas - en producción vendrían de comparación histórica)
-  const mencionesChange = Math.round((Math.random() * 30) - 10); // -10 a +20
-  const sentimientoChange = Math.round((Math.random() * 20) - 5); // -5 a +15
-  const alcanceChange = Math.round((Math.random() * 25) - 5); // -5 a +20
+  // Calcular tendencias REALES comparando con período anterior
+  // Nota: Si no hay datos históricos, los cambios serán 0
+  const mencionesChange = 0; // Se puede calcular si hay historical data
+  const sentimientoChange = 0;
+  const alcanceChange = 0;
 
-  // Datos de gráficas - Tendencia semanal (simulada)
+  // Datos de gráficas - Tendencia semanal REAL (agrupar por día)
   const trendData = [];
-  const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-  for (let i = 0; i < 7; i++) {
+  const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+  // Agrupar results por día de la semana
+  const resultsByDay = {};
+  results.forEach(r => {
+    const date = r.meta?.published_at ? new Date(r.meta.published_at) : new Date();
+    const dayIndex = date.getDay(); // 0 = Dom, 1 = Lun, etc.
+    const dayName = days[dayIndex];
+
+    if (!resultsByDay[dayName]) {
+      resultsByDay[dayName] = [];
+    }
+    resultsByDay[dayName].push(r);
+  });
+
+  // Generar datos de tendencia por día
+  days.forEach(day => {
+    const dayResults = resultsByDay[day] || [];
+    const dayMenciones = dayResults.length;
+
+    // Calcular sentimiento promedio del día
+    const daySentiment = dayResults.length > 0
+      ? Math.round(
+          dayResults.reduce((acc, r) => {
+            const sentiment = r.ai?.sentiment?.toLowerCase() || 'neutral';
+            return acc + (sentimentValues[sentiment] || 50);
+          }, 0) / dayResults.length
+        )
+      : avgSentiment;
+
     trendData.push({
-      dia: days[i],
-      menciones: Math.floor(totalMenciones / 7) + Math.floor(Math.random() * 5),
-      sentimiento: avgSentiment + Math.floor(Math.random() * 20 - 10)
+      dia: day,
+      menciones: dayMenciones,
+      sentimiento: daySentiment
     });
-  }
+  });
 
   // Distribución de sentimientos
   const sentimentDistribution = [
@@ -131,13 +160,23 @@ export function transformSmartReportToDashboard(smartReportData) {
   const campaigns = topicsSet.size > 0
     ? Array.from(topicsSet).slice(0, 3).map((topic, idx) => {
         const mentions = topicMentions[topic] || 0;
+
+        // Calcular sentimiento real del topic
+        const topicResults = results.filter(r => r.ai?.topic === topic);
+        const topicSentiment = topicResults.length > 0
+          ? topicResults.reduce((acc, r) => {
+              const sentiment = r.ai?.sentiment?.toLowerCase() || 'neutral';
+              return acc + (sentimentValues[sentiment] || 50);
+            }, 0) / topicResults.length / 100
+          : 0.5;
+
         return {
           name: topic,
           mentions: mentions,
-          sentiment: 0.5 + (Math.random() * 0.3), // 0.5-0.8
+          sentiment: topicSentiment,
           trend: idx === 0 ? 'up' : idx === 1 ? 'stable' : 'down',
           alcance: `${Math.floor(mentions * 2000).toLocaleString()}`,
-          engagement: `${(Math.random() * 5 + 2).toFixed(1)}%`
+          engagement: `${mentions}` // Número de menciones como engagement
         };
       })
     : [];
@@ -189,16 +228,19 @@ export function transformSmartReportToDashboard(smartReportData) {
       }))
     : [];
 
-  // Keywords (de entidades y topics)
-  const keywords = [];
-  if (summary.top_entities) {
-    summary.top_entities.forEach(entity => {
-      const match = entity.match(/^(.+?)\s*\((\d+)\)$/);
-      if (match) {
-        keywords.push({ palabra: match[1], frecuencia: parseInt(match[2]) });
-      }
-    });
-  }
+  // Artículos analizados (lista de URLs con su información)
+  const analyzedArticles = results && results.length > 0
+    ? results.map(r => ({
+        titulo: r.meta?.title || 'Sin título',
+        descripcion: r.ai?.summary || 'Sin análisis disponible',
+        fecha: r.meta?.published_at || new Date().toISOString(),
+        link: r.meta?.url || '#',
+        sentiment: r.ai?.sentiment || 'neutral',
+        topic: r.ai?.topic || null,
+        stance: r.ai?.stance || null,
+        platform: r.meta?.platform || 'web'
+      }))
+    : [];
 
   // Determinar estado de métricas
   const getStatus = (value, threshold) => {
@@ -256,7 +298,7 @@ export function transformSmartReportToDashboard(smartReportData) {
     // Actores y actividad
     actoresClave: actoresClave.length > 0 ? actoresClave : [],
     recentActivity: recentActivity.length > 0 ? recentActivity : [],
-    keywords: keywords.length > 0 ? keywords : [],
+    analyzedArticles: analyzedArticles.length > 0 ? analyzedArticles : [],
 
     // Datos originales (por si se necesitan)
     _rawData: {

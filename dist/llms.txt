@@ -1,0 +1,2 @@
+## Pages
+- [Percepción Digital — Analizador de Percepción Política](/): Herramienta avanzada para analizar la percepción digital de figuras políticas a través del análisis de múltiples fuentes web.

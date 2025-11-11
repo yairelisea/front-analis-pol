@@ -12,7 +12,9 @@ import {
   TrendingUp, TrendingDown, Minus, Activity, Eye, Shield,
   PlusCircle, RefreshCw, AlertCircle, CheckCircle2,
   MessageSquare, Users, Target, FileText, Download,
-  ArrowUpRight, Clock, Star, Zap, BarChart3
+  ArrowUpRight, Clock, Star, Zap, BarChart3,
+  ExternalLink, Calendar, Smile, Frown, Tag, Sparkles,
+  ThumbsUp, ThumbsDown
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { API_BASE } from '../config';
@@ -175,7 +177,7 @@ const ActivityItem = ({ activity }) => {
     normal: 'bg-green-50 border-green-200',
     low: 'bg-blue-50 border-blue-200',
   };
-  
+
   return (
     <div className={`p-4 rounded-lg border ${bgColors[activity.priority]} hover:shadow-md transition-shadow`}>
       <div className="flex items-start gap-3">
@@ -193,6 +195,152 @@ const ActivityItem = ({ activity }) => {
         </div>
       </div>
     </div>
+  );
+};
+
+// Componente de Artículo Analizado
+const AnalyzedArticleCard = ({ article }) => {
+  // Colores según sentimiento
+  const sentimentConfig = {
+    positive: {
+      bg: 'bg-green-50',
+      text: 'text-green-700',
+      border: 'border-green-200',
+      icon: Smile,
+      label: 'Positivo'
+    },
+    neutral: {
+      bg: 'bg-gray-50',
+      text: 'text-gray-700',
+      border: 'border-gray-200',
+      icon: Minus,
+      label: 'Neutral'
+    },
+    negative: {
+      bg: 'bg-red-50',
+      text: 'text-red-700',
+      border: 'border-red-200',
+      icon: Frown,
+      label: 'Negativo'
+    }
+  };
+
+  const stanceConfig = {
+    favor: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'A favor', icon: ThumbsUp },
+    against: { bg: 'bg-orange-50', text: 'text-orange-700', label: 'En contra', icon: ThumbsDown },
+    neutral: { bg: 'bg-gray-50', text: 'text-gray-700', label: 'Neutral', icon: Minus }
+  };
+
+  const sentiment = article.sentiment?.toLowerCase() || 'neutral';
+  const sentStyle = sentimentConfig[sentiment] || sentimentConfig.neutral;
+  const SentimentIcon = sentStyle.icon;
+
+  const stance = article.stance?.toLowerCase() || 'neutral';
+  const stanceStyle = stanceConfig[stance] || stanceConfig.neutral;
+  const StanceIcon = stanceStyle.icon;
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Fecha no disponible';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch {
+      return 'Fecha no disponible';
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+    >
+      <div className="p-5">
+        {/* Encabezado */}
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex-1">
+            <h3 className="text-lg font-bold text-gray-900 mb-2 hover:text-emerald-600 transition-colors">
+              {article.titulo || 'Sin título'}
+            </h3>
+            <div className="flex items-center gap-2 flex-wrap text-xs text-gray-500 mb-3">
+              <div className="flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5" />
+                <span>{formatDate(article.fecha)}</span>
+              </div>
+              {article.platform && (
+                <>
+                  <span>•</span>
+                  <Badge variant="outline" className="text-xs">
+                    {article.platform}
+                  </Badge>
+                </>
+              )}
+            </div>
+
+            {/* Badges de Sentiment y Stance */}
+            <div className="flex items-center gap-2 mb-3">
+              <Badge className={`${sentStyle.bg} ${sentStyle.text} border ${sentStyle.border}`}>
+                <SentimentIcon className="h-3 w-3 mr-1" />
+                {sentStyle.label}
+              </Badge>
+
+              {article.stance && article.stance !== 'neutral' && (
+                <Badge className={`${stanceStyle.bg} ${stanceStyle.text}`}>
+                  <StanceIcon className="h-3 w-3 mr-1" />
+                  {stanceStyle.label}
+                </Badge>
+              )}
+
+              {article.topic && (
+                <Badge variant="outline" className="text-xs">
+                  <Tag className="h-3 w-3 mr-1" />
+                  {article.topic}
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-emerald-600 hover:bg-emerald-50 flex-shrink-0"
+            onClick={() => window.open(article.link, '_blank')}
+          >
+            <ExternalLink className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Análisis de IA */}
+        <div className="bg-gradient-to-r from-emerald-50/50 to-teal-50/50 rounded-lg p-3 mb-3 border border-emerald-100">
+          <div className="flex items-start gap-2 mb-2">
+            <Sparkles className="h-4 w-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+            <span className="text-xs font-semibold text-emerald-700">Análisis IA</span>
+          </div>
+          <p className="text-sm text-gray-700 leading-relaxed">
+            {article.descripcion || 'Sin análisis disponible'}
+          </p>
+        </div>
+
+        <Separator className="my-3 bg-gray-200" />
+
+        {/* Link de la fuente */}
+        <div className="mt-3">
+          <a
+            href={article.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1"
+          >
+            <ExternalLink className="h-3 w-3" />
+            Ver fuente completa
+          </a>
+        </div>
+      </div>
+    </motion.div>
   );
 };
 
@@ -693,54 +841,32 @@ const WeeklyReport = ({
         </div>
       </motion.div>
 
-      {/* Keywords y Acciones */}
+      {/* Artículos Analizados */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
         <Card className="shadow-lg">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Palabras Clave Detectadas</CardTitle>
-                <CardDescription>Términos más relevantes del período analizado</CardDescription>
-              </div>
-              <div className="flex gap-3">
-                <Button variant="outline" className="gap-2">
-                  <Download className="h-4 w-4" />
-                  Descargar Reporte PDF
-                </Button>
-                <Button variant="outline" className="gap-2">
-                  <FileText className="h-4 w-4" />
-                  Ver Reporte Completo
-                </Button>
+                <CardTitle>Artículos Analizados</CardTitle>
+                <CardDescription>
+                  {dashboardData.analyzedArticles?.length || 0} artículos analizados en este período
+                </CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-3">
-              {dashboardData.keywords.map((kw, idx) => {
-                const sentimentColors = {
-                  positive: 'hover:bg-green-500 hover:border-green-600',
-                  neutral: 'hover:bg-yellow-500 hover:border-yellow-600',
-                  negative: 'hover:bg-red-500 hover:border-red-600',
-                };
-                return (
-                  <motion.div
-                    key={kw.word}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: idx * 0.05 }}
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <Badge 
-                      variant="outline" 
-                      className={`text-base px-4 py-2 cursor-pointer transition-all ${sentimentColors[kw.sentiment]} hover:text-white`}
-                    >
-                      #{kw.word}
-                      <span className="ml-2 text-xs opacity-70">({kw.frequency})</span>
-                    </Badge>
-                  </motion.div>
-                );
-              })}
-            </div>
+            {dashboardData.analyzedArticles && dashboardData.analyzedArticles.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4">
+                {dashboardData.analyzedArticles.map((article, idx) => (
+                  <AnalyzedArticleCard key={idx} article={article} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-600">No hay artículos analizados disponibles</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>
