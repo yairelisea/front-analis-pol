@@ -8,6 +8,7 @@ import FormSection from '@/components/FormSection';
 import InstructionsSection from '@/components/InstructionsSection';
 import ResultsView from '@/components/ResultsView';
 import DailyReport from '@/components/DailyReport';
+import { getAnalyses, getAnalysisById } from './lib/api';
 import { transformSmartReportToDashboard } from './lib/transformData';
 
 // URL de la API (Netlify / local)
@@ -15,14 +16,57 @@ import { transformSmartReportToDashboard } from './lib/transformData';
 const MIN_REQUIRED = MIN_URLS;
 
 function App() {
-  const [view, setView] = useState('form'); // 'form', 'results', or 'dailyReport'
+  const [view, setView] = useState('results'); // 'form', 'results', or 'dailyReport'
   const [formData, setFormData] = useState({ name: '', office: '', urls: '' });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [data, setData] = useState(null); // { politician, results, summary, metadata }
+  const [analyses, setAnalyses] = useState([]); // List of available analyses
   const [urlCount, setUrlCount] = useState(0);
   const [analyzedUrls, setAnalyzedUrls] = useState([]); // URLs del último análisis
   const { toast } = useToast();
   const resultsRef = useRef(null);
+
+  useEffect(() => {
+    const loadAnalyses = async () => {
+      try {
+        const analysesList = await getAnalyses();
+        setAnalyses(analysesList);
+        if (analysesList.length > 0) {
+          // Load the latest analysis by default
+          handleAnalysisSelection(analysesList[0].id);
+        }
+      } catch (error) {
+        toast({
+          title: 'Error al cargar análisis',
+          description: 'No se pudieron cargar los análisis anteriores.',
+          variant: 'destructive',
+        });
+      }
+    };
+
+    if (view === 'results') {
+      loadAnalyses();
+    }
+  }, [view]);
+
+  const handleAnalysisSelection = async (id) => {
+    try {
+      const analysisData = await getAnalysisById(id);
+      const dashboardData = transformSmartReportToDashboard(analysisData);
+      setData({
+        ...dashboardData,
+        _original: analysisData,
+      });
+      setAnalyzedUrls(analysisData.urls);
+    } catch (error) {
+      toast({
+        title: 'Error al cargar el análisis',
+        description: `No se pudo cargar el análisis seleccionado.`,
+        variant: 'destructive',
+      });
+    }
+  };
+
 
   // Estado de progreso
   const [progress, setProgress] = useState({ total: 0, done: 0, percent: 0 });
@@ -282,6 +326,9 @@ function App() {
                   onNewAnalysis={handleNewAnalysis}
                   onDownloadPdf={handleDownloadPdf}
                   resultsRef={resultsRef}
+                  analyses={analyses}
+                  onAnalysisSelect={handleAnalysisSelection}
+                  selectedAnalysisId={data?._original?.id}
                 />
               </motion.div>
             )}
