@@ -518,6 +518,10 @@ const WeeklyReport = ({
                 <p className="text-slate-300 text-base md:text-lg">{dashboardData.periodo}</p>
               </div>
               <div className="flex gap-2 md:gap-3 no-print flex-wrap">
+                <Button variant="outline" size="sm" className="bg-white/10 border-white/30 text-white hover:bg-white/20 md:size-lg" onClick={onNewAnalysis}>
+                  <PlusCircle className="h-4 w-4 md:h-5 md:w-5 md:mr-2" />
+                  <span className="hidden md:inline">Nuevo Análisis</span>
+                </Button>
                 <Button variant="outline" size="sm" className="bg-white/10 border-white/30 text-white hover:bg-white/20 md:size-lg" onClick={handleRefresh} disabled={refreshing}>
                   <RefreshCw className={`h-4 w-4 md:h-5 md:w-5 md:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
                   <span className="hidden md:inline">Actualizar</span>
