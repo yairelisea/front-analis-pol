@@ -1,448 +1,472 @@
-# 📄 Guía de Generación de PDFs en el Frontend
+# Guía para Generar PDFs desde el Frontend
 
-Esta guía explica cómo usar la funcionalidad de descarga de PDFs en la aplicación.
+## 📋 Descripción General
 
-## 📋 Tabla de Contenidos
-
-1. [Endpoints Disponibles](#endpoints-disponibles)
-2. [Utilidades JavaScript](#utilidades-javascript)
-3. [Componente React Reutilizable](#componente-react-reutilizable)
-4. [Ejemplos de Uso](#ejemplos-de-uso)
-5. [Integración en Componentes Existentes](#integración-en-componentes-existentes)
-6. [Troubleshooting](#troubleshooting)
+Se han agregado 3 nuevos endpoints para generar PDFs de los reportes. Todos mantienen el mismo formato visual que los reportes existentes.
 
 ---
 
-## 🔌 Endpoints Disponibles
+## 🔗 Endpoints Disponibles
 
-### 1. `/smart-report-pdf` - Reporte Semanal/Smart Report
+### 1. Smart Report PDF
+**Endpoint:** `POST /smart-report-pdf` o `POST /api/smart-report-pdf`
 
-**Método:** `POST`
+**Descripción:** Genera un PDF del reporte inteligente (smart report)
 
-**Payload:**
+**Uso:**
 ```javascript
-{
-  politician: {
-    name: "Juan Pérez",
-    office: "Alcalde"  // Opcional
-  },
-  results: [
-    {
-      meta: {
-        title: "Título de la publicación",
-        url: "https://...",
-        published_at: "2025-11-10",
-        platform: "web"
+const generateSmartReportPDF = async (reportData) => {
+  try {
+    const response = await fetch('http://tu-api.com/api/smart-report-pdf', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-      ai: {
-        summary: "Resumen de IA...",
-        sentiment: "positive",
-        topic: "Economía",
-        stance: "favor"
-      }
-    }
-    // ... más results
-  ],
-  summary: {
-    total: 10,
-    sentiments: { positive: 5, neutral: 3, negative: 2 },
-    predominant: "positive",
-    stances: { favor: 4, neutral: 3, against: 3 },
-    top_entities: ["Entidad 1 (5)", "Entidad 2 (3)"],
-    short_text: "Resumen general..."
-  },
-  metadata: {
-    is_cached: false,
-    analysis_date: "2025-11-10T12:00:00Z"
+      body: JSON.stringify({
+        politician: reportData.politician,
+        results: reportData.results,  // o reportData.posts
+        summary: reportData.summary
+      })
+    });
+
+    if (!response.ok) throw new Error('Error generando PDF');
+
+    // Convertir la respuesta a blob
+    const blob = await response.blob();
+
+    // Crear URL para descargar
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `smart_report_${reportData.politician.name}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error:', error);
   }
-}
+};
 ```
-
-**Respuesta:** Archivo PDF (binary)
 
 ---
 
-### 2. `/daily-summary-pdf` - Reporte Diario
+### 2. Daily Summary PDF
+**Endpoint:** `POST /daily-summary-pdf` o `POST /api/daily-summary-pdf`
 
-**Método:** `GET`
+**Descripción:** Genera un PDF del resumen diario
 
-**Query Parameters:**
-- `q`: Nombre del político (requerido)
-
-**Ejemplo:**
-```
-GET /daily-summary-pdf?q=Juan%20Pérez
-```
-
-**Respuesta:** Archivo PDF (binary)
-
----
-
-### 3. `/render-pdf` - Generación Genérica de PDF
-
-**Método:** `POST`
-
-**Payload:**
+**Uso:**
 ```javascript
-{
+const generateDailySummaryPDF = async (dailyData) => {
+  try {
+    const response = await fetch('http://tu-api.com/api/daily-summary-pdf', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        politician: dailyData.politician,
+        results: dailyData.results,  // o dailyData.posts
+        summary: dailyData.summary
+      })
+    });
+
+    if (!response.ok) throw new Error('Error generando PDF');
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `daily_summary_${dailyData.politician.name}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
+```
+
+---
+
+### 3. Weekly Report PDF
+**Endpoint:** `POST /weekly-report-pdf` o `POST /api/weekly-report-pdf`
+
+**Descripción:** Genera un PDF del reporte semanal
+
+**Uso:**
+```javascript
+const generateWeeklyReportPDF = async (weeklyData) => {
+  try {
+    const response = await fetch('http://tu-api.com/api/weekly-report-pdf', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        politician: weeklyData.politician,
+        results: weeklyData.results,  // o weeklyData.posts
+        summary: weeklyData.summary
+      })
+    });
+
+    if (!response.ok) throw new Error('Error generando PDF');
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `weekly_report_${weeklyData.politician.name}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
+```
+
+---
+
+## 📦 Estructura del Payload
+
+Todos los endpoints esperan el mismo formato de datos:
+
+```typescript
+interface PDFPayload {
   politician: {
-    name: "Juan Pérez",
-    office: "Alcalde"
-  },
-  results: [...],
-  summary: {...}
+    name: string;
+    office?: string;
+  };
+  results: Array<{
+    meta: {
+      platform: string;
+      url: string;
+      title?: string;
+      description?: string;
+      author_name?: string;
+      published_at?: string;
+      thumbnail_url?: string;
+      debug?: string;
+    };
+    ai: {
+      summary: string;
+      topic: string;
+      subtopics: string[];
+      sentiment: 'positive' | 'negative' | 'neutral';
+      stance: string;
+      entities: string[];
+      toxicity: number;
+      risk_note?: string;
+      opportunities: string[];
+    };
+  }>;
+  summary: {
+    short_text: string;
+    total_posts?: number;
+    sentiment_positive?: number;
+    sentiment_negative?: number;
+    sentiment_neutral?: number;
+    // ... otros campos del summary
+  };
 }
-```
-
-**Respuesta:** Archivo PDF (binary)
-
----
-
-## 🛠️ Utilidades JavaScript
-
-### Archivo: `src/lib/pdfDownloader.js`
-
-#### Función Principal: `downloadPDF()`
-
-```javascript
-import { downloadPDF } from '../lib/pdfDownloader';
-
-await downloadPDF({
-  endpoint: '/smart-report-pdf',
-  payload: reportData,
-  filename: 'reporte.pdf',
-  method: 'POST',
-  onProgress: (message) => console.log(message),
-  onSuccess: (blob) => console.log('PDF descargado', blob),
-  onError: (error) => console.error('Error', error)
-});
-```
-
-#### Funciones Especializadas
-
-**1. Smart Report PDF**
-```javascript
-import { downloadSmartReportPDF } from '../lib/pdfDownloader';
-
-await downloadSmartReportPDF(reportData, {
-  onProgress: (msg) => console.log(msg),
-  onSuccess: (blob) => console.log('Éxito'),
-  onError: (err) => console.error(err)
-});
-```
-
-**2. Daily Summary PDF**
-```javascript
-import { downloadDailySummaryPDF } from '../lib/pdfDownloader';
-
-await downloadDailySummaryPDF('Juan Pérez', {
-  onSuccess: () => alert('PDF descargado'),
-  onError: (err) => alert(err)
-});
-```
-
-**3. Generic PDF**
-```javascript
-import { downloadGenericPDF } from '../lib/pdfDownloader';
-
-await downloadGenericPDF(data, {
-  onSuccess: () => console.log('Listo')
-});
 ```
 
 ---
 
-## 🧩 Componente React Reutilizable
+## 🎨 Componente React de Ejemplo
 
-### Archivo: `src/components/PDFDownloadButton.jsx`
+Aquí hay un componente completo de React que puedes usar:
 
-#### Uso Básico
+```tsx
+import React from 'react';
 
-```jsx
-import PDFDownloadButton from '@/components/PDFDownloadButton';
-
-function MiComponente() {
-  return (
-    <PDFDownloadButton
-      endpoint="/smart-report-pdf"
-      payload={reportData}
-      filename="reporte_semanal.pdf"
-      label="Descargar Reporte"
-    />
-  );
+interface ReportData {
+  politician: { name: string; office?: string };
+  results: any[];
+  summary: any;
 }
-```
 
-#### Props Disponibles
+const PDFDownloadButton: React.FC<{
+  reportData: ReportData;
+  type: 'smart' | 'daily' | 'weekly'
+}> = ({ reportData, type }) => {
+  const [loading, setLoading] = React.useState(false);
 
-| Prop | Tipo | Default | Descripción |
-|------|------|---------|-------------|
-| `endpoint` | `string` | - | Endpoint del backend (requerido) |
-| `payload` | `Object` | `null` | Datos a enviar |
-| `filename` | `string` | `'reporte.pdf'` | Nombre del archivo |
-| `method` | `string` | `'POST'` | Método HTTP |
-| `label` | `string` | `'Descargar PDF'` | Texto del botón |
-| `variant` | `string` | `'default'` | Variante del botón |
-| `size` | `string` | `'default'` | Tamaño del botón |
-| `icon` | `Component` | `Download` | Ícono personalizado |
-| `className` | `string` | `''` | Clases CSS adicionales |
-| `disabled` | `boolean` | `false` | Deshabilitar botón |
-| `onSuccess` | `Function` | `null` | Callback de éxito |
-| `onError` | `Function` | `null` | Callback de error |
-
----
-
-## 💡 Ejemplos de Uso
-
-### Ejemplo 1: ResultsView / Dashboard
-
-```jsx
-import PDFDownloadButton from '@/components/PDFDownloadButton';
-import { Download } from 'lucide-react';
-
-function ResultsView({ reportData }) {
-  return (
-    <div>
-      <h1>Reporte Semanal</h1>
-
-      {/* Botón de descarga */}
-      <PDFDownloadButton
-        endpoint="/smart-report-pdf"
-        payload={reportData}
-        filename={`reporte_semanal_${reportData.politician.name}.pdf`}
-        label="Descargar PDF"
-        variant="default"
-        size="lg"
-      />
-
-      {/* Contenido del reporte */}
-      <div>{/* ... */}</div>
-    </div>
-  );
-}
-```
-
-### Ejemplo 2: Daily Report
-
-```jsx
-import PDFDownloadButton from '@/components/PDFDownloadButton';
-
-function DailyReport({ actorName }) {
-  return (
-    <div>
-      <h1>Reporte Diario - {actorName}</h1>
-
-      {/* Botón de descarga */}
-      <PDFDownloadButton
-        endpoint="/daily-summary-pdf"
-        payload={{ q: actorName }}
-        filename={`reporte_diario_${actorName}.pdf`}
-        method="GET"
-        label="Descargar Reporte Diario"
-        variant="outline"
-      />
-
-      {/* Contenido del reporte */}
-      <div>{/* ... */}</div>
-    </div>
-  );
-}
-```
-
-### Ejemplo 3: Con Callbacks Personalizados
-
-```jsx
-import PDFDownloadButton from '@/components/PDFDownloadButton';
-
-function MiComponente() {
-  const handleSuccess = (blob) => {
-    console.log('PDF generado exitosamente', blob);
-    // Enviar analítica, mostrar modal, etc.
+  const endpointMap = {
+    smart: '/api/smart-report-pdf',
+    daily: '/api/daily-summary-pdf',
+    weekly: '/api/weekly-report-pdf'
   };
 
-  const handleError = (error) => {
-    console.error('Error al generar PDF', error);
-    // Mostrar mensaje personalizado, reintentar, etc.
+  const labelMap = {
+    smart: 'Smart Report',
+    daily: 'Resumen Diario',
+    weekly: 'Reporte Semanal'
   };
 
-  return (
-    <PDFDownloadButton
-      endpoint="/smart-report-pdf"
-      payload={reportData}
-      filename="reporte.pdf"
-      onSuccess={handleSuccess}
-      onError={handleError}
-    />
-  );
-}
-```
-
-### Ejemplo 4: Función Directa (Sin Componente)
-
-```jsx
-import { downloadSmartReportPDF } from '../lib/pdfDownloader';
-import { useToast } from '@/components/ui/use-toast';
-
-function MiComponente() {
-  const { toast } = useToast();
-
-  const descargarPDF = async () => {
+  const downloadPDF = async () => {
+    setLoading(true);
     try {
-      await downloadSmartReportPDF(reportData, {
-        onProgress: (msg) => toast({ title: 'Procesando...', description: msg }),
-        onSuccess: () => toast({ title: '¡Éxito!', description: 'PDF descargado' }),
-        onError: (err) => toast({ title: 'Error', description: err, variant: 'destructive' })
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}${endpointMap[type]}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            politician: reportData.politician,
+            results: reportData.results,
+            summary: reportData.summary
+          })
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Error generando PDF');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${type}_${reportData.politician.name.replace(/\s+/g, '_')}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error descargando PDF:', error);
+      alert('Error al generar el PDF. Por favor intenta de nuevo.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <button onClick={descargarPDF}>
-      Descargar PDF
+    <button
+      onClick={downloadPDF}
+      disabled={loading}
+      className="pdf-download-btn"
+    >
+      {loading ? 'Generando...' : `Descargar ${labelMap[type]} (PDF)`}
     </button>
   );
-}
+};
+
+export default PDFDownloadButton;
 ```
 
 ---
 
-## 🔧 Integración en Componentes Existentes
+## 📝 Uso en tu Componente
 
-### En `ResultsView.jsx`
+### Ejemplo 1: En el componente de Smart Report
+
+```tsx
+import PDFDownloadButton from './PDFDownloadButton';
+
+const SmartReportComponent = () => {
+  const [reportData, setReportData] = useState(null);
+
+  // ... tu lógica para obtener el reporte
+
+  return (
+    <div>
+      {reportData && (
+        <>
+          {/* Tu contenido del reporte */}
+          <div className="report-content">
+            {/* ... */}
+          </div>
+
+          {/* Botón de descarga PDF */}
+          <PDFDownloadButton
+            reportData={reportData}
+            type="smart"
+          />
+        </>
+      )}
+    </div>
+  );
+};
+```
+
+### Ejemplo 2: En el componente de Daily Summary
+
+```tsx
+const DailySummaryComponent = () => {
+  const [dailyData, setDailyData] = useState(null);
+
+  // ... tu lógica para obtener el resumen diario
+
+  return (
+    <div>
+      {dailyData && (
+        <>
+          <div className="summary-content">
+            {/* ... */}
+          </div>
+
+          <PDFDownloadButton
+            reportData={dailyData}
+            type="daily"
+          />
+        </>
+      )}
+    </div>
+  );
+};
+```
+
+---
+
+## ⚡ Función Utilitaria Reutilizable
+
+Si prefieres una función más simple:
+
+```javascript
+/**
+ * Descarga un PDF desde el backend
+ * @param {string} endpoint - Uno de: 'smart-report-pdf', 'daily-summary-pdf', 'weekly-report-pdf'
+ * @param {object} data - Objeto con politician, results y summary
+ * @param {string} filename - Nombre del archivo a descargar
+ */
+export const downloadReportPDF = async (endpoint, data, filename) => {
+  try {
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error downloading PDF:', error);
+    return { success: false, error };
+  }
+};
+
+// Uso:
+// await downloadReportPDF('smart-report-pdf', reportData, 'mi_reporte.pdf');
+```
+
+---
+
+## 🚀 Integración Rápida
+
+Si ya tienes los datos del reporte en tu componente, simplemente:
+
+1. **Importa el fetch del navegador** (ya disponible)
+2. **Agrega un botón** con onClick
+3. **Llama al endpoint** con los datos que ya tienes
+4. **Descarga el PDF** automáticamente
 
 ```jsx
-import PDFDownloadButton from '@/components/PDFDownloadButton';
-
-// Dentro del componente, en la sección de botones:
-<div className="flex gap-3">
-  <Button variant="outline" onClick={onNewAnalysis}>
-    Nuevo Análisis
-  </Button>
-
-  {/* Agregar botón de PDF */}
-  <PDFDownloadButton
-    endpoint="/smart-report-pdf"
-    payload={dashboardData._original || dashboardData}
-    filename={`reporte_${dashboardData.actor}.pdf`}
-    label="Descargar PDF"
-  />
-</div>
-```
-
-### En `DailyReport.jsx`
-
-El componente ya tiene un botón de descarga. Si quieres usar el nuevo componente:
-
-```jsx
-import PDFDownloadButton from '@/components/PDFDownloadButton';
-
-// Reemplazar el botón existente con:
-<PDFDownloadButton
-  endpoint="/daily-summary-pdf"
-  payload={{ q: actorName }}
-  filename={`reporte_diario_${actorName}.pdf`}
-  method="GET"
-  label={isDownloading ? 'Generando...' : 'Descargar'}
-  variant="default"
-  size="sm"
-  className="bg-white text-emerald-600 hover:bg-gray-50"
-/>
+<button onClick={() => {
+  fetch('/api/smart-report-pdf', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(myReportData)
+  })
+  .then(res => res.blob())
+  .then(blob => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'reporte.pdf';
+    a.click();
+  });
+}}>
+  Descargar PDF
+</button>
 ```
 
 ---
 
-## 🐛 Troubleshooting
+## ✅ Checklist de Implementación
 
-### Problema 1: Error 404 - Endpoint no encontrado
-
-**Síntoma:** `GET /smart-report-pdf 404 (Not Found)`
-
-**Solución:**
-- Verifica que el backend esté corriendo
-- Confirma que el endpoint existe en el backend
-- Revisa la configuración de `API_BASE` en `src/config.js`
-
-### Problema 2: Error CORS
-
-**Síntoma:** `Access to fetch at '...' from origin '...' has been blocked by CORS policy`
-
-**Solución:**
-- Verifica que `API_BASE` apunte al servidor correcto
-- Asegúrate de que el backend tenga CORS habilitado
-- Confirma que estés usando `API_BASE` en lugar de rutas relativas
-
-### Problema 3: PDF no se descarga
-
-**Síntoma:** No aparece el diálogo de descarga
-
-**Solución:**
-```javascript
-// Verifica que el blob sea válido
-const blob = await response.blob();
-console.log('Blob type:', blob.type); // Debe ser 'application/pdf'
-console.log('Blob size:', blob.size); // Debe ser > 0
-```
-
-### Problema 4: Payload incorrecto
-
-**Síntoma:** `Error 422 - Unprocessable Entity`
-
-**Solución:**
-- Verifica que el payload tenga todos los campos requeridos
-- Confirma que la estructura coincida con lo esperado por el backend
-- Revisa los logs de consola para ver qué datos se están enviando
-
-### Problema 5: Timeout en generación de PDF
-
-**Síntoma:** La petición toma demasiado tiempo y falla
-
-**Solución:**
-```javascript
-// Aumentar timeout en fetch
-const controller = new AbortController();
-const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 segundos
-
-fetch(url, {
-  ...options,
-  signal: controller.signal
-});
-```
-
----
-
-## 📝 Checklist de Implementación
-
-- [ ] Importar `PDFDownloadButton` en tu componente
-- [ ] Definir el `endpoint` correcto
-- [ ] Preparar el `payload` con los datos necesarios
-- [ ] Configurar el `filename` dinámicamente
-- [ ] Agregar callbacks `onSuccess` y `onError` si es necesario
-- [ ] Probar la descarga con datos reales
-- [ ] Verificar que el PDF se genere correctamente
+- [ ] Verificar que tienes los datos completos (politician, results, summary)
+- [ ] Configurar la URL base de tu API (`process.env.REACT_APP_API_URL`)
+- [ ] Agregar botón de descarga en tu componente
+- [ ] Probar la descarga del PDF
 - [ ] Manejar estados de loading y errores
-- [ ] Agregar feedback visual al usuario (toast, spinner, etc.)
+- [ ] Verificar que el nombre del archivo es correcto
+- [ ] (Opcional) Agregar validación antes de generar el PDF
 
 ---
 
-## 🎯 Próximos Pasos
+## 🎯 Notas Importantes
 
-1. **Implementa el botón en tus componentes** usando `PDFDownloadButton`
-2. **Prueba la descarga** con datos reales del backend
-3. **Personaliza el diseño** según tu UI/UX
-4. **Agrega analíticas** en los callbacks para rastrear descargas
-5. **Optimiza el rendimiento** si los PDFs son muy grandes
-
----
-
-## 📚 Referencias
-
-- Componente: `src/components/PDFDownloadButton.jsx`
-- Utilidades: `src/lib/pdfDownloader.js`
-- Configuración: `src/config.js`
-- Documentación Backend: Consulta la documentación del backend para detalles de los endpoints
+1. **Los PDFs mantienen el mismo formato visual** que los reportes existentes
+2. **Acepta tanto `results` como `posts`** en el payload (son intercambiables)
+3. **Los endpoints tienen prefijos** `/api/` para compatibilidad con el frontend
+4. **El PDF se descarga automáticamente** con el nombre apropiado
+5. **No necesitas configurar nada adicional** en el backend, está listo para usar
 
 ---
 
-**¿Necesitas ayuda?** Revisa los ejemplos o consulta la sección de troubleshooting.
+## 🆘 Troubleshooting
+
+### Error: CORS
+Si ves errores de CORS, verifica que tu backend tiene configurado CORS correctamente. El backend ya tiene CORS habilitado.
+
+### Error: 400 Bad Request
+Verifica que estás enviando todos los campos requeridos: `politician`, `results`, y `summary`.
+
+### PDF vacío
+Asegúrate de que `results` no esté vacío y tenga la estructura correcta.
+
+### No se descarga el PDF
+Verifica que el `Content-Type` de la respuesta sea `application/pdf` y que el status sea 200.
+
+---
+
+## 📞 Endpoints Relacionados
+
+Para obtener los datos necesarios para generar el PDF:
+
+- `POST /api/smart-report` → Obtener datos del smart report
+- `GET /api/daily-summary?q=nombre` → Obtener datos del resumen diario
+- `GET /api/weekly-report?q=nombre` → Obtener datos del reporte semanal
+
+Ejemplo de flujo completo:
+
+```javascript
+// 1. Obtener los datos
+const response = await fetch('/api/smart-report', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ politician, urls, force_new })
+});
+const reportData = await response.json();
+
+// 2. Generar PDF con esos datos
+const pdfResponse = await fetch('/api/smart-report-pdf', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(reportData)
+});
+const blob = await pdfResponse.blob();
+// ... descargar
+```
