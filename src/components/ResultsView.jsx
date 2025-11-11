@@ -372,6 +372,22 @@ const WeeklyReport = ({
     // Si ya tenemos reportData de las props, no hacer fetch
     if (reportData) {
       console.log('✅ Using reportData from props');
+      console.log('📊 REPORT DATA STRUCTURE:', {
+        hasWeeklyTrend: !!reportData.weeklyTrend,
+        weeklyTrendLength: reportData.weeklyTrend?.length,
+        hasSentimentDistribution: !!reportData.sentimentDistribution,
+        sentimentDistributionLength: reportData.sentimentDistribution?.length,
+        hasNarrativaDistribution: !!reportData.narrativaDistribution,
+        hasCampaigns: !!reportData.campaigns,
+        campaignsLength: reportData.campaigns?.length,
+        hasFoda: !!reportData.foda,
+        hasActoresClave: !!reportData.actoresClave,
+        actoresClaveLength: reportData.actoresClave?.length,
+        hasRecentActivity: !!reportData.recentActivity,
+        recentActivityLength: reportData.recentActivity?.length,
+        hasAnalyzedArticles: !!reportData.analyzedArticles,
+        analyzedArticlesLength: reportData.analyzedArticles?.length
+      });
       setDashboardData(reportData);
       setLoading(false);
       return;

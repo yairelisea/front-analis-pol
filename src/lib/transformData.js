@@ -15,8 +15,16 @@ export function transformSmartReportToDashboard(smartReportData) {
 
   const { politician, results = [], summary = {}, metadata = {} } = smartReportData;
 
+  console.log('📊 DATOS EXTRAÍDOS:', {
+    politician,
+    resultsLength: results.length,
+    summary,
+    metadata
+  });
+
   // Calcular métricas desde los results
   const totalMenciones = results.length;
+  console.log('📈 Total menciones:', totalMenciones);
 
   // Calcular sentimiento promedio (positive=100, neutral=50, negative=0)
   const sentimentValues = {
