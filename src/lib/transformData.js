@@ -76,10 +76,19 @@ export function transformSmartReportToDashboard(smartReportData) {
     periodo = `${weekAgo.getDate()}-${now.getDate()} ${now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
   }
 
-  // Calcular sentimientos
-  const positiveCount = summary.sentiments?.positive || 0;
-  const negativeCount = summary.sentiments?.negative || 0;
-  const neutralCount = summary.sentiments?.neutral || 0;
+  // Calcular sentimientos DIRECTAMENTE desde results (no desde summary)
+  let positiveCount = 0;
+  let negativeCount = 0;
+  let neutralCount = 0;
+
+  results.forEach(r => {
+    const sentiment = r.ai?.sentiment?.toLowerCase() || 'neutral';
+    if (sentiment === 'positive') positiveCount++;
+    else if (sentiment === 'negative') negativeCount++;
+    else neutralCount++;
+  });
+
+  console.log('💭 Sentimientos calculados desde results:', { positiveCount, negativeCount, neutralCount });
 
   // Extraer topics principales
   const topicsSet = new Set();
@@ -103,8 +112,17 @@ export function transformSmartReportToDashboard(smartReportData) {
   const mainPlatform = Object.entries(platformCounts)
     .sort((a, b) => b[1] - a[1])[0]?.[0] || 'medios digitales';
 
+  // Calcular sentimiento predominante desde results
+  let predominant = 'neutral';
+  if (positiveCount > negativeCount && positiveCount > neutralCount) {
+    predominant = 'positive';
+  } else if (negativeCount > positiveCount && negativeCount > neutralCount) {
+    predominant = 'negative';
+  }
+
+  console.log('🎯 Sentimiento predominante:', predominant);
+
   // Generar diagnóstico REAL basado en datos
-  const predominant = summary.predominant || 'neutral';
   let diagnostico = '';
 
   if (predominant === 'positive') {
@@ -188,11 +206,20 @@ export function transformSmartReportToDashboard(smartReportData) {
     }
   ];
 
-  // Distribución de narrativa (por stance) - calcular porcentajes y counts
-  const favorCount = summary.stances?.favor || 0;
-  const stanceNeutralCount = summary.stances?.neutral || 0;
-  const againstCount = summary.stances?.against || 0;
+  // Distribución de narrativa (por stance) - calcular DIRECTAMENTE desde results
+  let favorCount = 0;
+  let stanceNeutralCount = 0;
+  let againstCount = 0;
+
+  results.forEach(r => {
+    const stance = r.ai?.stance?.toLowerCase() || 'neutral';
+    if (stance === 'favor') favorCount++;
+    else if (stance === 'against') againstCount++;
+    else stanceNeutralCount++;
+  });
+
   const totalStances = favorCount + stanceNeutralCount + againstCount;
+  console.log('📊 Stances calculadas desde results:', { favorCount, stanceNeutralCount, againstCount });
 
   const narrativaDistribution = [
     {
@@ -328,72 +355,46 @@ export function transformSmartReportToDashboard(smartReportData) {
     amenazas
   };
 
-  // Actores clave (de entidades) - formato compatible con ActorCard
-  const actoresClave = summary.top_entities && summary.top_entities.length > 0
-    ? summary.top_entities.slice(0, 5).map(entity => {
-        // Parsear "Nombre (count)"
-        const match = entity.match(/^(.+?)\s*\((\d+)\)$/);
-        const nombre = match ? match[1] : entity;
-        const menciones = match ? parseInt(match[2]) : 1;
+  // Actores clave - primero intentar desde summary.top_entities, si no desde topics
+  let actoresClave = [];
 
-        return {
-          actor: nombre,  // Cambiar 'nombre' a 'actor' para ActorCard
-          rol: 'Político', // Cambiar 'tipo' a 'rol' para ActorCard
-          menciones: menciones,  // Mantener 'menciones'
-          sentiment: menciones > 3 ? 'positive' : 'neutral',  // Cambiar 'sentimiento' a 'sentiment'
-          impacto: menciones > 5 ? 'alto' : menciones > 2 ? 'medio' : 'bajo'  // Agregar 'impacto'
-        };
-      })
-    : [];
+  if (summary.top_entities && summary.top_entities.length > 0) {
+    // Si hay entidades en summary, usarlas
+    actoresClave = summary.top_entities.slice(0, 5).map(entity => {
+      // Parsear "Nombre (count)"
+      const match = entity.match(/^(.+?)\s*\((\d+)\)$/);
+      const nombre = match ? match[1] : entity;
+      const menciones = match ? parseInt(match[2]) : 1;
 
-  // Actividad reciente (últimas menciones) - formato compatible con ActivityItem
-  const recentActivity = results && results.length > 0
-    ? results.slice(0, 10).map(r => {
-        // Generar descripción inteligente
-        let mensaje = r.meta?.title;
+      return {
+        actor: nombre,
+        rol: 'Entidad',
+        menciones: menciones,
+        sentiment: menciones > 3 ? 'positive' : 'neutral',
+        impacto: menciones > 5 ? 'alto' : menciones > 2 ? 'medio' : 'bajo'
+      };
+    });
+  } else if (sortedTopics.length > 0) {
+    // Si no hay entidades pero hay topics, usar los topics como actores
+    actoresClave = sortedTopics.slice(0, 5).map(topicData => {
+      const topicResults = results.filter(r => r.ai?.topic === topicData.topic);
+      const topicPositive = topicResults.filter(r => r.ai?.sentiment === 'positive').length;
+      const sentiment = topicPositive > topicResults.length / 2 ? 'positive' : 'neutral';
 
-        if (!mensaje || mensaje.trim() === '') {
-          // Si no hay título, usar el summary truncado
-          if (r.ai?.summary) {
-            const summary = r.ai.summary;
-            mensaje = summary.length > 100
-              ? summary.substring(0, 100) + '...'
-              : summary;
-          } else if (r.meta?.platform === 'facebook') {
-            mensaje = 'Post de Facebook';
-          } else {
-            mensaje = 'Mención';
-          }
-        }
+      return {
+        actor: topicData.topic,
+        rol: 'Tema',
+        menciones: topicData.count,
+        sentiment: sentiment,
+        impacto: topicData.count > 5 ? 'alto' : topicData.count > 2 ? 'medio' : 'bajo'
+      };
+    });
+  }
 
-        // Calcular tiempo relativo
-        const calcularTiempoRelativo = (fecha) => {
-          if (!fecha) return '1 hora';
-          const now = new Date();
-          const then = new Date(fecha);
-          const diffMs = now - then;
-          const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-          const diffDays = Math.floor(diffHours / 24);
+  console.log('👥 Actores clave generados:', actoresClave);
 
-          if (diffDays > 0) return `${diffDays} día${diffDays > 1 ? 's' : ''}`;
-          if (diffHours > 0) return `${diffHours} hora${diffHours > 1 ? 's' : ''}`;
-          return 'menos de 1 hora';
-        };
-
-        // Determinar tipo y prioridad basado en sentimiento
-        const sentiment = r.ai?.sentiment?.toLowerCase() || 'neutral';
-        const tipo = sentiment === 'negative' ? 'alert' : sentiment === 'positive' ? 'success' : 'info';
-        const priority = sentiment === 'negative' ? 'high' : sentiment === 'positive' ? 'normal' : 'low';
-
-        return {
-          type: tipo,
-          priority: priority,
-          message: mensaje,
-          time: calcularTiempoRelativo(r.meta?.published_at),
-          source: r.meta?.platform || 'web'
-        };
-      })
-    : [];
+  // Actividad reciente - mostrar mensaje de "sin actividad"
+  const recentActivity = [];
 
   // Artículos analizados (lista de URLs con su información)
   const analyzedArticles = results && results.length > 0

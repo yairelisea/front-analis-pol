@@ -836,9 +836,16 @@ const WeeklyReport = ({
               <CardDescription>Influencia en la narrativa</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {dashboardData.actoresClave.map((actor, idx) => (
-                <ActorCard key={idx} actor={actor} />
-              ))}
+              {dashboardData.actoresClave && dashboardData.actoresClave.length > 0 ? (
+                dashboardData.actoresClave.map((actor, idx) => (
+                  <ActorCard key={idx} actor={actor} />
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">No hay actores identificados</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -849,9 +856,16 @@ const WeeklyReport = ({
               <CardDescription>Últimas actualizaciones del sistema</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {dashboardData.recentActivity.map((activity, idx) => (
-                <ActivityItem key={idx} activity={activity} />
-              ))}
+              {dashboardData.recentActivity && dashboardData.recentActivity.length > 0 ? (
+                dashboardData.recentActivity.map((activity, idx) => (
+                  <ActivityItem key={idx} activity={activity} />
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <Clock className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">Sin actividad en este momento</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
