@@ -9,6 +9,7 @@ import InstructionsSection from '@/components/InstructionsSection';
 import ResultsView from '@/components/ResultsView';
 import DailyReport from '@/components/DailyReport';
 import ReportsLayout from '@/components/ReportsLayout';
+import AnalysisManager from '@/components/AnalysisManager';
 import { getAnalyses, getAnalysisById } from './lib/api';
 import { transformSmartReportToDashboard } from './lib/transformData';
 import { saveWeeklyReport, saveDailyReport, getAllPoliticians } from './lib/storage';
@@ -220,6 +221,22 @@ function App() {
     setView('dailyReport');
   };
 
+  const handleShowReports = () => {
+    setView('manage'); // Mostrar gestor de análisis
+  };
+
+  const handleSelectFromManager = async (analysis) => {
+    // Si es análisis de API
+    if (analysis.id) {
+      await handleAnalysisSelection(analysis.id);
+      setView('results');
+    } else {
+      // Si es análisis local (de localStorage)
+      // Ir a ReportsLayout
+      setView('reports');
+    }
+  };
+
   const handleDownloadPdf = useCallback(async () => {
     if (!data?.results?.length) {
       toast({ title: 'Nada que exportar', description: 'Aún no hay resultados.', variant: 'destructive' });
@@ -297,7 +314,14 @@ function App() {
           </motion.div>
 
           <AnimatePresence mode="wait">
-            {view === 'reports' ? (
+            {view === 'manage' ? (
+              <motion.div key="manage-analyses" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+                <AnalysisManager
+                  onBack={handleNewAnalysis}
+                  onSelectAnalysis={handleSelectFromManager}
+                />
+              </motion.div>
+            ) : view === 'reports' ? (
               <motion.div key="reports-layout" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
                 <ReportsLayout
                   onNewAnalysis={handleNewAnalysis}
@@ -318,6 +342,7 @@ function App() {
                     urlCount={urlCount}
                     minRequired={MIN_REQUIRED}
                     onShowDailyReport={handleShowDailyReport}
+                    onShowReports={handleShowReports}
                   />
 
                   {/* NUEVO: barra de progreso simple */}

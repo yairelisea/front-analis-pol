@@ -1,4 +1,5 @@
 import React from 'react';
+import { FileText, FolderOpen } from 'lucide-react';
 
 export default function FormSection({
   formData,
@@ -8,7 +9,8 @@ export default function FormSection({
   isAnalyzing,
   urlCount,
   minRequired,
-  onShowDailyReport
+  onShowDailyReport,
+  onShowReports
 }) {
   const onNameChange = (e) => setFormData(prev => ({ ...prev, name: e.target.value }));
   const onOfficeChange = (e) => setFormData(prev => ({ ...prev, office: e.target.value }));
@@ -65,11 +67,11 @@ https://medio.com/articulo...`
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <button
           type="submit"
           disabled={isAnalyzing}
-          className="px-4 py-2 bg-[#1acc8d] text-white rounded disabled:opacity-60"
+          className="px-4 py-2 bg-[#1acc8d] text-white rounded disabled:opacity-60 font-semibold hover:bg-[#15b37d] transition-colors"
         >
           {isAnalyzing ? 'Generando análisis...' : 'Generar análisis'}
         </button>
@@ -77,14 +79,28 @@ https://medio.com/articulo...`
           type="button"
           onClick={onShowDailyReport}
           disabled={isAnalyzing || !formData.name.trim()}
-          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-60"
+          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-60 font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"
         >
+          <FileText className="h-4 w-4" />
           Generar Reporte Diario
         </button>
+
+        {onShowReports && (
+          <button
+            type="button"
+            onClick={onShowReports}
+            disabled={isAnalyzing}
+            className="px-4 py-2 bg-purple-600 text-white rounded disabled:opacity-60 font-semibold hover:bg-purple-700 transition-colors flex items-center gap-2"
+          >
+            <FolderOpen className="h-4 w-4" />
+            Ver Reportes Guardados
+          </button>
+        )}
+
         <button
           type="button"
           onClick={() => { setFormData({ name: '', office: '', urls: '' }); handleUrlsChange(''); }}
-          className="px-3 py-2 border rounded"
+          className="px-3 py-2 border rounded hover:bg-gray-50 transition-colors"
         >
           Limpiar
         </button>

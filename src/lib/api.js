@@ -33,3 +33,18 @@ export const getAnalysisById = async (id) => {
   }
   return response.json();
 };
+
+/**
+ * Deletes an analysis by its ID.
+ * @param {string} id The ID of the analysis to delete.
+ * @returns {Promise<void>} A promise that resolves when the analysis is deleted.
+ */
+export const deleteAnalysis = async (id) => {
+  const response = await fetch(`${API_BASE}/analysis/${id}`, {
+    method: 'DELETE'
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to delete analysis with id ${id}`);
+  }
+  return response.json();
+};
