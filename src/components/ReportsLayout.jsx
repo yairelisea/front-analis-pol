@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-  BarChart3, FileText, ArrowLeft, RefreshCw, Download
+  BarChart3, FileText, ArrowLeft, RefreshCw
 } from 'lucide-react';
 import PoliticianSelector from './PoliticianSelector';
 import ResultsView from './ResultsView';
@@ -119,6 +119,7 @@ const ReportsLayout = ({
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
+          className="no-print"
         >
           <PoliticianSelector
             currentId={currentPolitician.id}
@@ -132,6 +133,7 @@ const ReportsLayout = ({
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
+          className="no-print"
         >
           <Card className="shadow-md">
             <CardContent className="p-4">
@@ -180,22 +182,6 @@ const ReportsLayout = ({
                     <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
                     Actualizar
                   </Button>
-
-                  {onDownloadPdf && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const reportData = activeTab === 'weekly'
-                          ? currentPolitician.weeklyReport
-                          : currentPolitician.dailyReport;
-                        onDownloadPdf(reportData);
-                      }}
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Descargar PDF
-                    </Button>
-                  )}
                 </div>
               </div>
             </CardContent>
