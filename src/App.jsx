@@ -18,7 +18,7 @@ import { saveWeeklyReport, saveDailyReport, getAllPoliticians } from './lib/stor
 const MIN_REQUIRED = MIN_URLS;
 
 function App() {
-  const [view, setView] = useState('results'); // 'form', 'results', 'dailyReport', or 'reports'
+  const [view, setView] = useState('form'); // 'form', 'results', 'dailyReport', or 'reports'
   const [formData, setFormData] = useState({ name: '', office: '', urls: '' });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [data, setData] = useState(null); // { politician, results, summary, metadata }
@@ -31,32 +31,7 @@ function App() {
   // Estado de progreso
   const [progress, setProgress] = useState({ total: 0, done: 0, percent: 0 });
 
-  // Cargar análisis desde la API al montar
-  useEffect(() => {
-    const loadAnalyses = async () => {
-      try {
-        const analysesList = await getAnalyses();
-        setAnalyses(analysesList);
-        if (analysesList.length > 0) {
-          // Load the latest analysis by default
-          handleAnalysisSelection(analysesList[0].id);
-        }
-      } catch (error) {
-        console.error('Error loading analyses:', error);
-        toast({
-          title: 'Error al cargar análisis',
-          description: 'No se pudieron cargar los análisis anteriores.',
-          variant: 'destructive',
-        });
-      }
-    };
-
-    if (view === 'results') {
-      loadAnalyses();
-    }
-  }, [view]);
-
-  const handleAnalysisSelection = async (id) => {
+  const handleAnalysisSelection = useCallback(async (id) => {
     try {
       const analysisData = await getAnalysisById(id);
       const dashboardData = transformSmartReportToDashboard(analysisData);
@@ -73,7 +48,45 @@ function App() {
         variant: 'destructive',
       });
     }
-  };
+  }, [toast]);
+
+  // Cargar análisis desde la API o localStorage al montar
+  useEffect(() => {
+    const loadInitialData = async () => {
+      // Primero verificar si hay datos en localStorage
+      const politicians = getAllPoliticians();
+
+      // Luego intentar cargar desde la API
+      try {
+        const analysesList = await getAnalyses();
+        setAnalyses(analysesList);
+
+        if (analysesList.length > 0) {
+          // Si hay análisis en la API, cargar el primero
+          await handleAnalysisSelection(analysesList[0].id);
+          setView('results');
+        } else if (politicians.length > 0) {
+          // Si no hay en la API pero sí en localStorage, usar ReportsLayout
+          setView('reports');
+        } else {
+          // Si no hay datos, mostrar formulario
+          setView('form');
+        }
+      } catch (error) {
+        console.error('Error loading analyses from API:', error);
+
+        // Si falla la API pero hay datos en localStorage, usar ReportsLayout
+        if (politicians.length > 0) {
+          setView('reports');
+        } else {
+          // Si no hay datos en ningún lado, mostrar formulario
+          setView('form');
+        }
+      }
+    };
+
+    loadInitialData();
+  }, [handleAnalysisSelection]);
 
   // Normaliza: 1 URL por línea, añade https si falta, ignora líneas con 0 o >1 URLs, elimina duplicados
   // REEMPLAZO: normalizeUrls más permisiva (soporta \n , ;)
