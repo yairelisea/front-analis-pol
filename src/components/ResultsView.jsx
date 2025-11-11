@@ -494,7 +494,7 @@ const WeeklyReport = ({
   console.log('📋 Dashboard data keys:', Object.keys(dashboardData));
 
   return (
-    <div className="max-w-[1800px] mx-auto space-y-8">
+    <div className="max-w-[1800px] mx-auto space-y-4 md:space-y-6 lg:space-y-8 px-4 md:px-0">
       
       {/* Header Executive */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
@@ -514,30 +514,28 @@ const WeeklyReport = ({
                     Actualizado en vivo
                   </Badge>
                 </div>
-                <h1 className="text-5xl font-bold mb-3">{dashboardData.actor}</h1>
-                <p className="text-slate-300 text-lg">{dashboardData.periodo}</p>
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3">{dashboardData.actor}</h1>
+                <p className="text-slate-300 text-base md:text-lg">{dashboardData.periodo}</p>
               </div>
-              <div className="flex gap-3 no-print">
-                <Button variant="outline" size="lg" className="bg-white/10 border-white/30 text-white hover:bg-white/20" onClick={onNewAnalysis}>
-                  Nuevo Análisis
+              <div className="flex gap-2 md:gap-3 no-print flex-wrap">
+                <Button variant="outline" size="sm" className="bg-white/10 border-white/30 text-white hover:bg-white/20 md:size-lg" onClick={handleRefresh} disabled={refreshing}>
+                  <RefreshCw className={`h-4 w-4 md:h-5 md:w-5 md:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                  <span className="hidden md:inline">Actualizar</span>
                 </Button>
-                <Button variant="outline" size="lg" className="bg-white/10 border-white/30 text-white hover:bg-white/20" onClick={handleRefresh} disabled={refreshing}>
-                  <RefreshCw className={`h-5 w-5 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-                  Actualizar
+                <Button variant="outline" size="sm" className="bg-white/10 border-white/30 text-white hover:bg-white/20 md:size-lg" onClick={handlePrint}>
+                  <Printer className="h-4 w-4 md:h-5 md:w-5 md:mr-2" />
+                  <span className="hidden md:inline">Imprimir</span>
                 </Button>
-                <Button variant="outline" size="lg" className="bg-white/10 border-white/30 text-white hover:bg-white/20" onClick={handlePrint}>
-                  <Printer className="h-5 w-5 mr-2" />
-                  Imprimir
-                </Button>
-                <Button size="lg" className="bg-brand-green hover:bg-emerald-600 text-white shadow-lg" onClick={() => handleNavigate('/user/campaigns/new')}>
-                  <PlusCircle className="h-5 w-5 mr-2" />
-                  Nueva Campaña
+                <Button size="sm" className="bg-brand-green hover:bg-emerald-600 text-white shadow-lg md:size-lg" onClick={() => handleNavigate('/user/campaigns/new')}>
+                  <PlusCircle className="h-4 w-4 md:h-5 md:w-5 md:mr-2" />
+                  <span className="hidden sm:inline">Nueva Campaña</span>
+                  <span className="sm:hidden">Nueva</span>
                 </Button>
               </div>
             </div>
             
             {/* Diagnóstico Estratégico */}
-            <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+            <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 md:p-6 border border-white/20">
               <div className="flex items-start gap-4">
                 <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-400/30">
                   <Shield className="h-6 w-6 text-emerald-300" />
@@ -554,7 +552,7 @@ const WeeklyReport = ({
 
       {/* KPIs Hero - 4 columnas */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-        <div className="grid grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           <HeroKPI
             title="Total Menciones"
             value={dashboardData.totalMenciones.toLocaleString()}
@@ -590,10 +588,10 @@ const WeeklyReport = ({
 
       {/* Métricas del Reporte + Distribuciones */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-        <div className="grid grid-cols-12 gap-6">
-          
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+
           {/* Métricas del Reporte Ejecutivo - 4 cols */}
-          <Card className="col-span-4 shadow-lg">
+          <Card className="lg:col-span-4 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-brand-green" />
@@ -630,7 +628,7 @@ const WeeklyReport = ({
           </Card>
 
           {/* Gráfica de Tendencia Semanal - 5 cols */}
-          <Card className="col-span-5 shadow-lg">
+          <Card className="lg:col-span-5 shadow-lg">
             <CardHeader>
               <CardTitle>Tendencia Semanal</CardTitle>
               <CardDescription>Volumen de menciones por día</CardDescription>
@@ -670,7 +668,7 @@ const WeeklyReport = ({
           </Card>
 
           {/* Distribuciones - 3 cols */}
-          <Card className="col-span-3 shadow-lg">
+          <Card className="lg:col-span-3 shadow-lg">
             <CardHeader>
               <CardTitle className="text-base">Distribuciones</CardTitle>
             </CardHeader>
@@ -757,7 +755,7 @@ const WeeklyReport = ({
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
               {dashboardData.campaigns.map((campaign) => (
                 <CampaignCard 
                   key={campaign.id} 
@@ -772,10 +770,10 @@ const WeeklyReport = ({
 
       {/* FODA + Actores Clave + Actividad */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-        <div className="grid grid-cols-12 gap-6">
-          
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+
           {/* FODA - 4 cols */}
-          <Card className="col-span-4 shadow-lg">
+          <Card className="lg:col-span-4 shadow-lg">
             <CardHeader>
               <CardTitle>Análisis FODA</CardTitle>
               <CardDescription>Resumen estratégico</CardDescription>
@@ -838,7 +836,7 @@ const WeeklyReport = ({
           </Card>
 
           {/* Actores Clave - 4 cols */}
-          <Card className="col-span-4 shadow-lg">
+          <Card className="lg:col-span-4 shadow-lg">
             <CardHeader>
               <CardTitle>Actores y Medios Clave</CardTitle>
               <CardDescription>Influencia en la narrativa</CardDescription>
@@ -858,7 +856,7 @@ const WeeklyReport = ({
           </Card>
 
           {/* Actividad Reciente - 4 cols */}
-          <Card className="col-span-4 shadow-lg">
+          <Card className="lg:col-span-4 shadow-lg">
             <CardHeader>
               <CardTitle>Actividad Reciente</CardTitle>
               <CardDescription>Últimas actualizaciones del sistema</CardDescription>

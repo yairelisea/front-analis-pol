@@ -362,15 +362,15 @@ const DailyReport = ({ actorName, onBack }) => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 p-8">
-      <div className="max-w-[1400px] mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 p-4 md:p-8">
+      <div className="max-w-[1400px] mx-auto space-y-4 md:space-y-6">
         
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
           <Card className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-2xl border-0 overflow-hidden">
             <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMTUiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-40" />
 
-            <CardContent className="p-6 relative">
+            <CardContent className="p-4 md:p-6 relative">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3 no-print">
@@ -389,7 +389,7 @@ const DailyReport = ({ actorName, onBack }) => {
                       Reporte Diario
                     </Badge>
                   </div>
-                  <h1 className="text-4xl font-bold mb-2 text-white drop-shadow-sm">{actorName}</h1>
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 text-white drop-shadow-sm">{actorName}</h1>
                   <div className="flex items-center gap-2 text-white/90">
                     <Calendar className="h-4 w-4" />
                     <p className="text-base">{fechaActual}</p>
