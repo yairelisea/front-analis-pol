@@ -1,5 +1,5 @@
 import { API_BASE, MIN_URLS } from './config';
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';

@@ -322,18 +322,23 @@ const WeeklyReport = ({
     return <div>No hay datos disponibles.</div>;
   }
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   console.log('🎨 Rendering dashboard with data:', dashboardData);
   console.log('📋 Dashboard data keys:', Object.keys(dashboardData));
 
   return (
-    <div className="max-w-[1800px] mx-auto space-y-8">
+    <div id="printable-area">
+      <div className="max-w-[1800px] mx-auto space-y-8 printable-report">
       
       {/* Header Executive */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-        <Card className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl border-0 overflow-hidden">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-30" />
+        <Card className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl border-0 overflow-hidden printable-header">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-30 printable-header-bg-image" />
           
-          <CardContent className="p-8 relative">
+          <CardContent className="p-8 relative printable-card-content">
             <div className="flex items-start justify-between mb-6">
               <div className="flex-1">
                 <div className="flex items-center gap-4 mb-3">
@@ -349,7 +354,7 @@ const WeeklyReport = ({
                 <h1 className="text-5xl font-bold mb-3">{dashboardData.actor}</h1>
                 <p className="text-slate-300 text-lg">{dashboardData.periodo}</p>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-3 no-print">
                 <Button variant="outline" size="lg" className="bg-white/10 border-white/30 text-white hover:bg-white/20" onClick={onNewAnalysis}>
                   Nuevo Análisis
                 </Button>
@@ -360,6 +365,10 @@ const WeeklyReport = ({
                 <Button size="lg" className="bg-brand-green hover:bg-emerald-600 text-white shadow-lg" onClick={() => handleNavigate('/user/campaigns/new')}>
                   <PlusCircle className="h-5 w-5 mr-2" />
                   Nueva Campaña
+                </Button>
+                <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg" onClick={handlePrint}>
+                  <Download className="h-5 w-5 mr-2" />
+                  Imprimir Reporte
                 </Button>
               </div>
             </div>
@@ -382,7 +391,7 @@ const WeeklyReport = ({
 
       {/* KPIs Hero - 4 columnas */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-        <div className="grid grid-cols-4 gap-6">
+        <div className="grid grid-cols-4 gap-6 printable-kpi-grid">
           <HeroKPI
             title="Total Menciones"
             value={dashboardData.totalMenciones.toLocaleString()}
@@ -418,7 +427,7 @@ const WeeklyReport = ({
 
       {/* Métricas del Reporte + Distribuciones */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-        <div className="grid grid-cols-12 gap-6">
+        <div className="grid grid-cols-12 gap-6 printable-grid">
           
           {/* Métricas del Reporte Ejecutivo - 4 cols */}
           <Card className="col-span-4 shadow-lg">
@@ -429,7 +438,7 @@ const WeeklyReport = ({
               </CardTitle>
               <CardDescription>Indicadores clave de percepción</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-3 printable-card-content">
               <ReportMetric
                 label="Visibilidad Pública"
                 value={dashboardData.visibilidadPublica.value}
@@ -463,37 +472,39 @@ const WeeklyReport = ({
               <CardTitle>Tendencia Semanal</CardTitle>
               <CardDescription>Volumen de menciones por día</CardDescription>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={280}>
-                <AreaChart data={dashboardData.weeklyTrend}>
-                  <defs>
-                    <linearGradient id="colorMentions" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#1ACC8D" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="#1ACC8D" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                  <XAxis dataKey="day" stroke="#888" fontSize={12} tickLine={false} />
-                  <YAxis stroke="#888" fontSize={12} tickLine={false} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
-                      border: '1px solid #e5e7eb', 
-                      borderRadius: '12px',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                      padding: '12px'
-                    }}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="mentions" 
-                    stroke="#1ACC8D" 
-                    strokeWidth={3}
-                    fill="url(#colorMentions)" 
-                    name="Menciones"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+            <CardContent className="printable-card-content">
+              <div className="printable-chart-large">
+                <ResponsiveContainer width="100%" height={280}>
+                  <AreaChart data={dashboardData.weeklyTrend}>
+                    <defs>
+                      <linearGradient id="colorMentions" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#1ACC8D" stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor="#1ACC8D" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                    <XAxis dataKey="day" stroke="#888" fontSize={12} tickLine={false} />
+                    <YAxis stroke="#888" fontSize={12} tickLine={false} />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'white', 
+                        border: '1px solid #e5e7eb', 
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                        padding: '12px'
+                      }}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="mentions" 
+                      stroke="#1ACC8D" 
+                      strokeWidth={3}
+                      fill="url(#colorMentions)" 
+                      name="Menciones"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
 
@@ -502,28 +513,30 @@ const WeeklyReport = ({
             <CardHeader>
               <CardTitle className="text-base">Distribuciones</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 printable-card-content">
               {/* Sentimiento */}
               <div>
                 <p className="text-sm font-medium mb-3">Sentimiento</p>
-                <ResponsiveContainer width="100%" height={140}>
-                  <PieChart>
-                    <Pie 
-                      data={dashboardData.sentimentDistribution} 
-                      cx="50%" 
-                      cy="50%" 
-                      innerRadius={40} 
-                      outerRadius={60} 
-                      paddingAngle={5} 
-                      dataKey="value"
-                    >
-                      {dashboardData.sentimentDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+                <div className="printable-chart-small">
+                  <ResponsiveContainer width="100%" height={140}>
+                    <PieChart>
+                      <Pie 
+                        data={dashboardData.sentimentDistribution} 
+                        cx="50%" 
+                        cy="50%" 
+                        innerRadius={40} 
+                        outerRadius={60} 
+                        paddingAngle={5} 
+                        dataKey="value"
+                      >
+                        {dashboardData.sentimentDistribution.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
                 <div className="space-y-1.5 mt-3">
                   {dashboardData.sentimentDistribution.map((item) => (
                     <div key={item.name} className="flex items-center justify-between text-xs">
@@ -542,24 +555,26 @@ const WeeklyReport = ({
               {/* Narrativa */}
               <div>
                 <p className="text-sm font-medium mb-3">Foco de Narrativa</p>
-                <ResponsiveContainer width="100%" height={140}>
-                  <PieChart>
-                    <Pie 
-                      data={dashboardData.narrativaDistribution} 
-                      cx="50%" 
-                      cy="50%" 
-                      innerRadius={40} 
-                      outerRadius={60} 
-                      paddingAngle={5} 
-                      dataKey="value"
-                    >
-                      {dashboardData.narrativaDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+                <div className="printable-chart-small">
+                  <ResponsiveContainer width="100%" height={140}>
+                    <PieChart>
+                      <Pie 
+                        data={dashboardData.narrativaDistribution} 
+                        cx="50%" 
+                        cy="50%" 
+                        innerRadius={40} 
+                        outerRadius={60} 
+                        paddingAngle={5} 
+                        dataKey="value"
+                      >
+                        {dashboardData.narrativaDistribution.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -578,13 +593,13 @@ const WeeklyReport = ({
                 </CardTitle>
                 <CardDescription>Rendimiento de tus campañas de monitoreo</CardDescription>
               </div>
-              <Button variant="ghost" onClick={() => handleNavigate('/user/campaigns')}>
+              <Button variant="ghost" onClick={() => handleNavigate('/user/campaigns')} className="no-print">
                 Ver todas
                 <ArrowUpRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="printable-card-content">
             <div className="grid grid-cols-3 gap-6">
               {dashboardData.campaigns.map((campaign) => (
                 <CampaignCard 
@@ -600,7 +615,7 @@ const WeeklyReport = ({
 
       {/* FODA + Actores Clave + Actividad */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-        <div className="grid grid-cols-12 gap-6">
+        <div className="grid grid-cols-12 gap-6 printable-grid">
           
           {/* FODA - 4 cols */}
           <Card className="col-span-4 shadow-lg">
@@ -608,7 +623,7 @@ const WeeklyReport = ({
               <CardTitle>Análisis FODA</CardTitle>
               <CardDescription>Resumen estratégico</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 printable-card-content">
               <div className="p-4 rounded-lg bg-green-50 border border-green-200">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xl">✓</span>
@@ -671,7 +686,7 @@ const WeeklyReport = ({
               <CardTitle>Actores y Medios Clave</CardTitle>
               <CardDescription>Influencia en la narrativa</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-3 printable-card-content">
               {dashboardData.actoresClave.map((actor, idx) => (
                 <ActorCard key={idx} actor={actor} />
               ))}
@@ -684,7 +699,7 @@ const WeeklyReport = ({
               <CardTitle>Actividad Reciente</CardTitle>
               <CardDescription>Últimas actualizaciones del sistema</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-3 printable-card-content">
               {dashboardData.recentActivity.map((activity, idx) => (
                 <ActivityItem key={idx} activity={activity} />
               ))}
@@ -702,7 +717,7 @@ const WeeklyReport = ({
                 <CardTitle>Palabras Clave Detectadas</CardTitle>
                 <CardDescription>Términos más relevantes del período analizado</CardDescription>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-3 no-print">
                 <Button variant="outline" className="gap-2">
                   <Download className="h-4 w-4" />
                   Descargar Reporte PDF
@@ -714,7 +729,7 @@ const WeeklyReport = ({
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="printable-card-content">
             <div className="flex flex-wrap gap-3">
               {dashboardData.keywords.map((kw, idx) => {
                 const sentimentColors = {
@@ -745,6 +760,7 @@ const WeeklyReport = ({
         </Card>
       </motion.div>
 
+    </div>
     </div>
   );
 };
