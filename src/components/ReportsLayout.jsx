@@ -137,19 +137,19 @@ const ReportsLayout = ({
         >
           <Card className="shadow-md">
             <CardContent className="p-4">
-              <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 {/* Tabs */}
-                <div className="flex gap-2">
+                <div className="flex gap-2 w-full sm:w-auto">
                   <Button
                     variant={activeTab === 'weekly' ? 'default' : 'outline'}
                     onClick={() => setActiveTab('weekly')}
                     disabled={!hasWeeklyReport}
-                    className={activeTab === 'weekly' ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
+                    className={`flex-1 sm:flex-initial ${activeTab === 'weekly' ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}
                   >
                     <BarChart3 className="h-4 w-4 mr-2" />
-                    Reporte Semanal
+                    <span className="text-sm">Semanal</span>
                     {!hasWeeklyReport && (
-                      <Badge variant="secondary" className="ml-2 text-xs">
+                      <Badge variant="secondary" className="ml-2 text-xs hidden sm:inline-flex">
                         No disponible
                       </Badge>
                     )}
@@ -159,12 +159,12 @@ const ReportsLayout = ({
                     variant={activeTab === 'daily' ? 'default' : 'outline'}
                     onClick={() => setActiveTab('daily')}
                     disabled={!hasDailyReport}
-                    className={activeTab === 'daily' ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
+                    className={`flex-1 sm:flex-initial ${activeTab === 'daily' ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}
                   >
                     <FileText className="h-4 w-4 mr-2" />
-                    Reporte Diario
+                    <span className="text-sm">Diario</span>
                     {!hasDailyReport && (
-                      <Badge variant="secondary" className="ml-2 text-xs">
+                      <Badge variant="secondary" className="ml-2 text-xs hidden sm:inline-flex">
                         No disponible
                       </Badge>
                     )}
@@ -172,7 +172,7 @@ const ReportsLayout = ({
                 </div>
 
                 {/* Acciones */}
-                <div className="flex gap-2">
+                <div className="flex gap-2 w-full sm:w-auto justify-center">
                   <Button
                     variant="outline"
                     size="sm"
