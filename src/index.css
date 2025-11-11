@@ -74,94 +74,23 @@ body {
     display: none !important;
   }
 
-  /* Configuración de página */
+  /* Configuración de página A4 */
   @page {
-    size: auto;
-    margin: 1.5cm;
+    size: A4;
+    margin: 1cm 1.5cm;
   }
 
   body {
     background: white !important;
-    color: black !important;
+    width: 100%;
+    margin: 0;
+    padding: 0;
   }
 
-  /* Forzar fondos blancos y texto negro */
+  /* NO forzar todo a blanco - mantener colores originales */
   * {
-    background: white !important;
-    color: black !important;
     box-shadow: none !important;
     text-shadow: none !important;
-  }
-
-  /* Mantener colores en gráficos y badges importantes */
-  .recharts-surface,
-  .recharts-layer,
-  [class*="bg-green"],
-  [class*="bg-red"],
-  [class*="bg-yellow"],
-  [class*="bg-blue"],
-  [class*="bg-emerald"],
-  [class*="text-green"],
-  [class*="text-red"],
-  [class*="text-yellow"],
-  [class*="text-blue"] {
-    color: inherit !important;
-    background: inherit !important;
-  }
-
-  /* Asegurar que los bordes sean visibles */
-  .border,
-  [class*="border-"] {
-    border-color: #ccc !important;
-  }
-
-  /* Títulos */
-  h1, h2, h3, h4, h5, h6 {
-    color: black !important;
-    page-break-after: avoid;
-  }
-
-  /* Evitar que las tarjetas se partan */
-  .card,
-  [class*="Card"] {
-    page-break-inside: avoid;
-    border: 1px solid #ddd !important;
-    margin-bottom: 1rem;
-  }
-
-  /* Asegurar que las tablas se vean bien */
-  table {
-    border-collapse: collapse;
-    width: 100%;
-  }
-
-  table, th, td {
-    border: 1px solid #ddd !important;
-  }
-
-  /* Espaciado para mejor legibilidad */
-  .grid {
-    display: grid;
-    gap: 1rem;
-  }
-
-  /* Ajustar el tamaño de los gráficos */
-  .recharts-wrapper {
-    max-height: 300px !important;
-  }
-
-  /* Mantener badges visibles */
-  .badge,
-  [class*="Badge"] {
-    border: 1px solid #333 !important;
-    padding: 2px 8px;
-    display: inline-block;
-  }
-
-  /* Enlaces */
-  a {
-    text-decoration: underline;
-    color: #0066cc !important;
   }
 
   /* Ocultar animaciones */
@@ -170,24 +99,190 @@ body {
     transition: none !important;
   }
 
+  /* Títulos - mantener colores */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+
+  /* Evitar que las tarjetas se partan */
+  .card,
+  [class*="Card"] {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* Asegurar que las tablas se vean bien */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    page-break-inside: avoid;
+  }
+
+  table, th, td {
+    border: 1px solid #ddd !important;
+  }
+
+  /* Ajustar grids para impresión */
+  .grid {
+    display: grid;
+    gap: 0.5rem !important;
+  }
+
+  /* Ajustar columnas en grids */
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .grid-cols-12 .col-span-5,
+  .grid-cols-12 .col-span-4,
+  .grid-cols-12 .col-span-3 {
+    grid-column: span 6 !important;
+  }
+
+  /* Ajustar el tamaño de los gráficos */
+  .recharts-wrapper {
+    max-height: 200px !important;
+    width: 100% !important;
+  }
+
+  /* Reducir tamaño de gráficos grandes */
+  .recharts-surface {
+    max-height: 200px !important;
+  }
+
+  /* Mantener badges visibles con colores */
+  .badge,
+  [class*="Badge"] {
+    padding: 2px 6px !important;
+    display: inline-block;
+    font-size: 9pt !important;
+  }
+
+  /* Enlaces */
+  a {
+    text-decoration: underline;
+  }
+
   /* Maximizar el uso del espacio */
   .max-w-\[1800px\],
+  .max-w-\[1400px\],
   .max-w-7xl,
   .max-w-6xl {
     max-width: 100% !important;
   }
 
-  /* Header del reporte */
-  .report-header {
-    background: #f8f9fa !important;
-    border: 2px solid #333 !important;
-    padding: 1rem;
-    margin-bottom: 1rem;
+  /* Reducir padding y spacing */
+  .p-8 {
+    padding: 0.5rem !important;
   }
 
-  /* Asegurar que el texto sea legible */
-  p, span, div {
-    font-size: 11pt;
-    line-height: 1.4;
+  .p-6 {
+    padding: 0.75rem !important;
+  }
+
+  .p-5 {
+    padding: 0.6rem !important;
+  }
+
+  .p-4 {
+    padding: 0.5rem !important;
+  }
+
+  .space-y-8 > * + *,
+  .space-y-6 > * + * {
+    margin-top: 0.5rem !important;
+  }
+
+  .space-y-4 > * + *,
+  .space-y-3 > * + * {
+    margin-top: 0.3rem !important;
+  }
+
+  .gap-6 {
+    gap: 0.5rem !important;
+  }
+
+  .gap-4 {
+    gap: 0.3rem !important;
+  }
+
+  /* Ajustar tamaño de fuente */
+  p, span, div, li {
+    font-size: 9pt !important;
+    line-height: 1.3 !important;
+  }
+
+  h1 {
+    font-size: 18pt !important;
+    margin-bottom: 0.3rem !important;
+  }
+
+  h2 {
+    font-size: 14pt !important;
+    margin-bottom: 0.3rem !important;
+  }
+
+  h3 {
+    font-size: 12pt !important;
+    margin-bottom: 0.3rem !important;
+  }
+
+  h4, h5, h6 {
+    font-size: 10pt !important;
+    margin-bottom: 0.2rem !important;
+  }
+
+  /* Reducir tamaño de íconos */
+  svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+
+  /* Cards más compactas */
+  [class*="CardContent"] {
+    padding: 0.5rem !important;
+  }
+
+  [class*="CardHeader"] {
+    padding: 0.5rem !important;
+    padding-bottom: 0.3rem !important;
+  }
+
+  /* Evitar quiebres de página no deseados */
+  .motion\.div,
+  motion-div,
+  [class*="motion"] {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Artículos analizados - hacerlos más compactos */
+  .grid-cols-1 {
+    gap: 0.3rem !important;
+  }
+
+  /* FODA y secciones con múltiples items */
+  .space-y-4 {
+    gap: 0.2rem !important;
+  }
+
+  /* Header del reporte - mantener colores originales */
+  .report-header,
+  [class*="from-slate"],
+  [class*="from-emerald"],
+  [class*="bg-gradient"] {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Forzar que se impriman los colores de fondo */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }
