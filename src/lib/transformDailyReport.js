@@ -51,8 +51,28 @@ export function transformDailySummaryToReport(summaryData, actorName) {
   if (results && results.length > 0) {
     // Si hay results en el summary
     results.forEach((result, idx) => {
+      // Generar título inteligente si no existe
+      let titulo = result.meta?.title;
+
+      if (!titulo || titulo.trim() === '') {
+        // Si no hay título, usar el summary truncado
+        if (result.ai?.summary) {
+          const summary = result.ai.summary;
+          // Tomar las primeras 80 caracteres del summary
+          titulo = summary.length > 80
+            ? summary.substring(0, 80) + '...'
+            : summary;
+        } else if (result.meta?.platform === 'facebook') {
+          // Para Facebook sin título ni summary, usar descripción genérica con fecha
+          const fecha = result.meta?.published_at ? new Date(result.meta.published_at).toLocaleDateString('es-ES') : '';
+          titulo = `Post de Facebook${fecha ? ` - ${fecha}` : ''}`;
+        } else {
+          titulo = `Mención ${idx + 1}`;
+        }
+      }
+
       registro_de_evidencia.push({
-        titulo: result.meta?.title || `Mención ${idx + 1}`,
+        titulo,
         descripcion: result.ai?.summary || 'Sin resumen disponible',
         fecha: result.meta?.published_at || new Date().toISOString().split('T')[0],
         link: result.meta?.url || '#',

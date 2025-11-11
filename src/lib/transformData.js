@@ -220,26 +220,67 @@ export function transformSmartReportToDashboard(smartReportData) {
 
   // Actividad reciente (últimas menciones)
   const recentActivity = results && results.length > 0
-    ? results.slice(0, 10).map(r => ({
-        tipo: r.meta?.platform || 'web',
-        descripcion: r.meta?.title || r.ai?.summary || 'Mención',
-        fecha: r.meta?.published_at || new Date().toISOString(),
-        impacto: r.ai?.sentiment === 'positive' ? 'Alto' : r.ai?.sentiment === 'negative' ? 'Medio' : 'Bajo'
-      }))
+    ? results.slice(0, 10).map(r => {
+        // Generar descripción inteligente
+        let descripcion = r.meta?.title;
+
+        if (!descripcion || descripcion.trim() === '') {
+          // Si no hay título, usar el summary truncado
+          if (r.ai?.summary) {
+            const summary = r.ai.summary;
+            descripcion = summary.length > 100
+              ? summary.substring(0, 100) + '...'
+              : summary;
+          } else if (r.meta?.platform === 'facebook') {
+            descripcion = 'Post de Facebook';
+          } else {
+            descripcion = 'Mención';
+          }
+        }
+
+        return {
+          tipo: r.meta?.platform || 'web',
+          descripcion,
+          fecha: r.meta?.published_at || new Date().toISOString(),
+          impacto: r.ai?.sentiment === 'positive' ? 'Alto' : r.ai?.sentiment === 'negative' ? 'Medio' : 'Bajo'
+        };
+      })
     : [];
 
   // Artículos analizados (lista de URLs con su información)
   const analyzedArticles = results && results.length > 0
-    ? results.map(r => ({
-        titulo: r.meta?.title || 'Sin título',
-        descripcion: r.ai?.summary || 'Sin análisis disponible',
-        fecha: r.meta?.published_at || new Date().toISOString(),
-        link: r.meta?.url || '#',
-        sentiment: r.ai?.sentiment || 'neutral',
-        topic: r.ai?.topic || null,
-        stance: r.ai?.stance || null,
-        platform: r.meta?.platform || 'web'
-      }))
+    ? results.map(r => {
+        // Generar título inteligente si no existe
+        let titulo = r.meta?.title;
+
+        if (!titulo || titulo.trim() === '') {
+          // Si no hay título, usar el summary truncado
+          if (r.ai?.summary) {
+            const summary = r.ai.summary;
+            // Tomar las primeras 80 caracteres del summary
+            titulo = summary.length > 80
+              ? summary.substring(0, 80) + '...'
+              : summary;
+          } else if (r.meta?.platform === 'facebook') {
+            // Para Facebook sin título ni summary, usar descripción genérica con fecha
+            const fecha = r.meta?.published_at ? new Date(r.meta.published_at).toLocaleDateString('es-ES') : '';
+            titulo = `Post de Facebook${fecha ? ` - ${fecha}` : ''}`;
+          } else {
+            titulo = 'Sin título';
+          }
+        }
+
+        return {
+          titulo,
+          descripcion: r.ai?.summary || 'Sin análisis disponible',
+          fecha: r.meta?.published_at || new Date().toISOString(),
+          link: r.meta?.url || '#',
+          sentiment: r.ai?.sentiment || 'neutral',
+          topic: r.ai?.topic || null,
+          stance: r.ai?.stance || null,
+          platform: r.meta?.platform || 'web'
+        };
+      })
     : [];
 
   // Determinar estado de métricas
