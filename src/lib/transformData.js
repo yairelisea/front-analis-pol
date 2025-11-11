@@ -44,18 +44,74 @@ export function transformSmartReportToDashboard(smartReportData) {
   // Estimar alcance (simulado por ahora)
   const alcanceEstimado = totalMenciones * 2500; // Aproximación
 
-  // Generar período
-  const now = new Date();
-  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const periodo = `${weekAgo.getDate()}-${now.getDate()} ${now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
+  // Generar período basado en fechas reales de los results
+  let periodo;
+  if (results && results.length > 0) {
+    const fechas = results
+      .map(r => r.meta?.published_at)
+      .filter(Boolean)
+      .map(d => new Date(d))
+      .sort((a, b) => a - b);
 
-  // Generar diagnóstico basado en sentimiento predominante
+    if (fechas.length > 0) {
+      const fechaInicio = fechas[0];
+      const fechaFin = fechas[fechas.length - 1];
+      periodo = `${fechaInicio.getDate()}-${fechaFin.getDate()} ${fechaFin.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
+    } else {
+      const now = new Date();
+      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      periodo = `${weekAgo.getDate()}-${now.getDate()} ${now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
+    }
+  } else {
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    periodo = `${weekAgo.getDate()}-${now.getDate()} ${now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
+  }
+
+  // Calcular sentimientos
+  const positiveCount = summary.sentiments?.positive || 0;
+  const negativeCount = summary.sentiments?.negative || 0;
+  const neutralCount = summary.sentiments?.neutral || 0;
+
+  // Extraer topics principales
+  const topicsSet = new Set();
+  const topicMentions = {};
+  results.forEach(r => {
+    if (r.ai?.topic) {
+      topicsSet.add(r.ai.topic);
+      topicMentions[r.ai.topic] = (topicMentions[r.ai.topic] || 0) + 1;
+    }
+  });
+
+  // Ordenar topics por menciones
+  const sortedTopics = Array.from(topicsSet)
+    .map(topic => ({ topic, count: topicMentions[topic] }))
+    .sort((a, b) => b.count - a.count);
+
+  const topTopic = sortedTopics[0]?.topic || 'temas variados';
+  const topTopicCount = sortedTopics[0]?.count || 0;
+
+  // Obtener plataforma principal (platformCounts ya se calculó arriba)
+  const mainPlatform = Object.entries(platformCounts)
+    .sort((a, b) => b[1] - a[1])[0]?.[0] || 'medios digitales';
+
+  // Generar diagnóstico REAL basado en datos
   const predominant = summary.predominant || 'neutral';
-  const diagnosticos = {
-    positive: `${politician?.name || 'El actor político'} mantiene una percepción predominantemente positiva en medios digitales. Se recomienda mantener estrategia actual y capitalizar momentum.`,
-    neutral: `${politician?.name || 'El actor político'} presenta una percepción equilibrada en medios digitales. Oportunidad para reforzar mensajes clave y aumentar engagement.`,
-    negative: `${politician?.name || 'El actor político'} enfrenta desafíos de percepción en medios digitales. Se recomienda estrategia de comunicación proactiva y gestión de crisis.`
-  };
+  let diagnostico = '';
+
+  if (predominant === 'positive') {
+    diagnostico = `${politician?.name || 'El actor político'} mantiene una percepción predominantemente positiva en ${mainPlatform} con ${positiveCount} menciones positivas de ${totalMenciones} totales (${Math.round((positiveCount/totalMenciones)*100)}%). `;
+    diagnostico += `El tema principal que genera engagement es "${topTopic}" con ${topTopicCount} menciones. `;
+    diagnostico += `Se recomienda mantener la estrategia actual y capitalizar este momentum positivo.`;
+  } else if (predominant === 'negative') {
+    diagnostico = `${politician?.name || 'El actor político'} enfrenta desafíos de percepción con ${negativeCount} menciones negativas de ${totalMenciones} totales (${Math.round((negativeCount/totalMenciones)*100)}%). `;
+    diagnostico += `La mayor parte de la discusión se centra en "${topTopic}". `;
+    diagnostico += `Se recomienda implementar estrategia de comunicación proactiva y gestión de crisis enfocada en este tema.`;
+  } else {
+    diagnostico = `${politician?.name || 'El actor político'} presenta una percepción equilibrada con ${positiveCount} menciones positivas, ${neutralCount} neutrales y ${negativeCount} negativas. `;
+    diagnostico += `"${topTopic}" es el tema más discutido con ${topTopicCount} menciones. `;
+    diagnostico += `Existe oportunidad para reforzar mensajes clave y aumentar engagement positivo.`;
+  }
 
   // Calcular tendencias REALES comparando con período anterior
   // Nota: Si no hay datos históricos, los cambios serán 0
@@ -146,20 +202,13 @@ export function transformSmartReportToDashboard(smartReportData) {
     value: count
   }));
 
-  // Campañas activas (extraídas de topics)
-  const topicsSet = new Set();
-  const topicMentions = {};
-  results.forEach(r => {
-    if (r.ai?.topic) {
-      topicsSet.add(r.ai.topic);
-      topicMentions[r.ai.topic] = (topicMentions[r.ai.topic] || 0) + 1;
-    }
-  });
+  // Campañas activas (usar topics ya calculados arriba)
   const campanasActivas = Math.min(topicsSet.size, 5);
 
-  const campaigns = topicsSet.size > 0
-    ? Array.from(topicsSet).slice(0, 3).map((topic, idx) => {
-        const mentions = topicMentions[topic] || 0;
+  const campaigns = sortedTopics.length > 0
+    ? sortedTopics.slice(0, 3).map((topicData, idx) => {
+        const topic = topicData.topic;
+        const mentions = topicData.count;
 
         // Calcular sentimiento real del topic
         const topicResults = results.filter(r => r.ai?.topic === topic);
@@ -181,24 +230,83 @@ export function transformSmartReportToDashboard(smartReportData) {
       })
     : [];
 
-  // FODA (basado en análisis)
-  const positiveCount = summary.sentiments?.positive || 0;
-  const negativeCount = summary.sentiments?.negative || 0;
-  const neutralCount = summary.sentiments?.neutral || 0;
+  // FODA (basado en análisis REAL de los datos)
+  const fortalezas = [];
+  const oportunidades = [];
+  const debilidades = [];
+  const amenazas = [];
+
+  // FORTALEZAS - basadas en datos positivos reales
+  if (positiveCount > negativeCount) {
+    fortalezas.push(`Percepción positiva en ${mainPlatform} (${positiveCount} menciones positivas)`);
+  }
+  if (sortedTopics.length > 0 && sortedTopics[0].count > 2) {
+    fortalezas.push(`Fuerte asociación con "${sortedTopics[0].topic}" (${sortedTopics[0].count} menciones)`);
+  }
+  if (platformDist.length > 2) {
+    fortalezas.push(`Presencia diversificada en ${platformDist.length} plataformas digitales`);
+  }
+  if (totalMenciones > 10) {
+    fortalezas.push(`Alto volumen de menciones (${totalMenciones} referencias en el período)`);
+  }
+  // Si no hay fortalezas, agregar al menos una genérica
+  if (fortalezas.length === 0) {
+    fortalezas.push('Presencia digital establecida con oportunidad de crecimiento');
+  }
+
+  // OPORTUNIDADES - basadas en gaps en los datos
+  if (platformDist.length <= 2) {
+    oportunidades.push('Expansión a nuevas plataformas digitales para aumentar alcance');
+  }
+  if (neutralCount > positiveCount + negativeCount) {
+    oportunidades.push('Gran audiencia neutral susceptible a mensajes positivos');
+  }
+  if (sortedTopics.length > 1) {
+    oportunidades.push(`Diversificar contenido más allá de "${sortedTopics[0].topic}"`);
+  }
+  oportunidades.push('Implementar estrategia de contenido multimedia para mayor engagement');
+  if (summary.stances?.favor < totalMenciones * 0.3) {
+    oportunidades.push('Incrementar posicionamiento favorable en temas clave');
+  }
+
+  // DEBILIDADES - basadas en datos negativos reales
+  if (negativeCount > positiveCount) {
+    debilidades.push(`Percepción negativa predominante (${negativeCount} menciones negativas)`);
+  }
+  if (totalMenciones < 5) {
+    debilidades.push('Alcance limitado en medios digitales');
+  }
+  if (platformDist.length === 1) {
+    debilidades.push(`Dependencia de una sola plataforma (${mainPlatform})`);
+  }
+  if (summary.stances?.against > summary.stances?.favor) {
+    debilidades.push('Mayor número de posturas en contra que a favor');
+  }
+  // Si no hay debilidades específicas, agregar una genérica
+  if (debilidades.length === 0) {
+    debilidades.push('Oportunidad de optimizar estrategia de comunicación digital');
+  }
+
+  // AMENAZAS - basadas en riesgos identificados en los datos
+  if (negativeCount > positiveCount * 0.5) {
+    amenazas.push('Narrativa negativa con potencial de amplificación');
+  }
+  if (sortedTopics.length > 0 && negativeCount > 3) {
+    amenazas.push(`Riesgo de asociación negativa con "${sortedTopics[0].topic}"`);
+  }
+  amenazas.push('Competencia activa en el espacio digital');
+  if (platformDist.length > 0) {
+    amenazas.push('Cambios en algoritmos de plataformas pueden afectar visibilidad');
+  }
+  if (summary.top_entities && summary.top_entities.length > 3) {
+    amenazas.push('Múltiples actores compitiendo por atención en temas similares');
+  }
 
   const foda = {
-    fortalezas: positiveCount > negativeCount
-      ? ['Percepción positiva en redes', 'Alto engagement digital', 'Narrativa coherente']
-      : positiveCount > 0
-      ? ['Presencia digital activa', 'Base de seguidores leales']
-      : ['Oportunidad de construcción de marca'],
-    oportunidades: ['Expansión en nuevas plataformas', 'Colaboraciones estratégicas', 'Contenido multimedia'],
-    debilidades: negativeCount > positiveCount
-      ? ['Gestión de crisis reactiva', 'Mensajes inconsistentes', 'Baja interacción']
-      : totalMenciones < 5
-      ? ['Alcance limitado', 'Poca visibilidad']
-      : ['Alcance limitado en ciertos segmentos'],
-    amenazas: ['Desinformación', 'Competencia activa', 'Cambios de algoritmos']
+    fortalezas,
+    oportunidades,
+    debilidades,
+    amenazas
   };
 
   // Actores clave (de entidades)
@@ -294,7 +402,7 @@ export function transformSmartReportToDashboard(smartReportData) {
   const dashboardData = {
     actor: politician?.name || 'Actor Político',
     periodo,
-    diagnostico: diagnosticos[predominant],
+    diagnostico,
 
     // KPIs principales
     totalMenciones,
