@@ -490,25 +490,10 @@ const WeeklyReport = ({
     return <div>No hay datos disponibles.</div>;
   }
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   console.log('🎨 Rendering dashboard with data:', dashboardData);
   console.log('📋 Dashboard data keys:', Object.keys(dashboardData));
 
   return (
-<<<<<<< HEAD
-    <div id="printable-area">
-      <div className="max-w-[1800px] mx-auto space-y-8 printable-report">
-      
-      {/* Header Executive */}
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-        <Card className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl border-0 overflow-hidden printable-header">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-30 printable-header-bg-image" />
-          
-          <CardContent className="p-8 relative printable-card-content">
-=======
     <div className="max-w-[1800px] mx-auto space-y-4 md:space-y-6 lg:space-y-8 px-4 md:px-0">
       
       {/* Header Executive */}
@@ -517,7 +502,6 @@ const WeeklyReport = ({
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-30" />
 
           <CardContent className="p-8 relative">
->>>>>>> 57a8be5e7bf01a27005f95d176b39d6c5fa7d2ab
             <div className="flex items-start justify-between mb-6">
               <div className="flex-1">
                 <div className="flex items-center gap-4 mb-3 no-print">
@@ -533,16 +517,10 @@ const WeeklyReport = ({
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3">{dashboardData.actor}</h1>
                 <p className="text-slate-300 text-base md:text-lg">{dashboardData.periodo}</p>
               </div>
-<<<<<<< HEAD
-              <div className="flex gap-3 no-print">
-                <Button variant="outline" size="lg" className="bg-white/10 border-white/30 text-white hover:bg-white/20" onClick={onNewAnalysis}>
-                  Nuevo Análisis
-=======
               <div className="flex gap-2 md:gap-3 no-print flex-wrap">
                 <Button variant="outline" size="sm" className="bg-white/10 border-white/30 text-white hover:bg-white/20 md:size-lg" onClick={onNewAnalysis}>
                   <PlusCircle className="h-4 w-4 md:h-5 md:w-5 md:mr-2" />
                   <span className="hidden md:inline">Nuevo Análisis</span>
->>>>>>> 57a8be5e7bf01a27005f95d176b39d6c5fa7d2ab
                 </Button>
                 <Button variant="outline" size="sm" className="bg-white/10 border-white/30 text-white hover:bg-white/20 md:size-lg" onClick={handleRefresh} disabled={refreshing}>
                   <RefreshCw className={`h-4 w-4 md:h-5 md:w-5 md:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
@@ -556,10 +534,6 @@ const WeeklyReport = ({
                   <PlusCircle className="h-4 w-4 md:h-5 md:w-5 md:mr-2" />
                   <span className="hidden sm:inline">Nueva Campaña</span>
                   <span className="sm:hidden">Nueva</span>
-                </Button>
-                <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg" onClick={handlePrint}>
-                  <Download className="h-5 w-5 mr-2" />
-                  Imprimir Reporte
                 </Button>
               </div>
             </div>
@@ -582,11 +556,7 @@ const WeeklyReport = ({
 
       {/* KPIs Hero - 4 columnas */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-<<<<<<< HEAD
-        <div className="grid grid-cols-4 gap-6 printable-kpi-grid">
-=======
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
->>>>>>> 57a8be5e7bf01a27005f95d176b39d6c5fa7d2ab
           <HeroKPI
             title="Total Menciones"
             value={dashboardData.totalMenciones.toLocaleString()}
@@ -622,13 +592,8 @@ const WeeklyReport = ({
 
       {/* Métricas del Reporte + Distribuciones */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-<<<<<<< HEAD
-        <div className="grid grid-cols-12 gap-6 printable-grid">
-          
-=======
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
 
->>>>>>> 57a8be5e7bf01a27005f95d176b39d6c5fa7d2ab
           {/* Métricas del Reporte Ejecutivo - 4 cols */}
           <Card className="lg:col-span-4 shadow-lg">
             <CardHeader>
@@ -638,7 +603,7 @@ const WeeklyReport = ({
               </CardTitle>
               <CardDescription>Indicadores clave de percepción</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3 printable-card-content">
+            <CardContent className="space-y-3">
               <ReportMetric
                 label="Visibilidad Pública"
                 value={dashboardData.visibilidadPublica.value}
@@ -672,39 +637,37 @@ const WeeklyReport = ({
               <CardTitle>Tendencia Semanal</CardTitle>
               <CardDescription>Volumen de menciones por día</CardDescription>
             </CardHeader>
-            <CardContent className="printable-card-content">
-              <div className="printable-chart-large">
-                <ResponsiveContainer width="100%" height={280}>
-                  <AreaChart data={dashboardData.weeklyTrend}>
-                    <defs>
-                      <linearGradient id="colorMentions" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#1ACC8D" stopOpacity={0.4}/>
-                        <stop offset="95%" stopColor="#1ACC8D" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                    <XAxis dataKey="day" stroke="#888" fontSize={12} tickLine={false} />
-                    <YAxis stroke="#888" fontSize={12} tickLine={false} />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'white', 
-                        border: '1px solid #e5e7eb', 
-                        borderRadius: '12px',
-                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                        padding: '12px'
-                      }}
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey="mentions" 
-                      stroke="#1ACC8D" 
-                      strokeWidth={3}
-                      fill="url(#colorMentions)" 
-                      name="Menciones"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={280}>
+                <AreaChart data={dashboardData.weeklyTrend}>
+                  <defs>
+                    <linearGradient id="colorMentions" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#1ACC8D" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#1ACC8D" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                  <XAxis dataKey="day" stroke="#888" fontSize={12} tickLine={false} />
+                  <YAxis stroke="#888" fontSize={12} tickLine={false} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'white', 
+                      border: '1px solid #e5e7eb', 
+                      borderRadius: '12px',
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                      padding: '12px'
+                    }}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="mentions" 
+                    stroke="#1ACC8D" 
+                    strokeWidth={3}
+                    fill="url(#colorMentions)" 
+                    name="Menciones"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
 
@@ -713,30 +676,28 @@ const WeeklyReport = ({
             <CardHeader>
               <CardTitle className="text-base">Distribuciones</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6 printable-card-content">
+            <CardContent className="space-y-6">
               {/* Sentimiento */}
               <div>
                 <p className="text-sm font-medium mb-3">Sentimiento</p>
-                <div className="printable-chart-small">
-                  <ResponsiveContainer width="100%" height={140}>
-                    <PieChart>
-                      <Pie 
-                        data={dashboardData.sentimentDistribution} 
-                        cx="50%" 
-                        cy="50%" 
-                        innerRadius={40} 
-                        outerRadius={60} 
-                        paddingAngle={5} 
-                        dataKey="value"
-                      >
-                        {dashboardData.sentimentDistribution.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
+                <ResponsiveContainer width="100%" height={140}>
+                  <PieChart>
+                    <Pie 
+                      data={dashboardData.sentimentDistribution} 
+                      cx="50%" 
+                      cy="50%" 
+                      innerRadius={40} 
+                      outerRadius={60} 
+                      paddingAngle={5} 
+                      dataKey="value"
+                    >
+                      {dashboardData.sentimentDistribution.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
                 <div className="space-y-1.5 mt-3">
                   {dashboardData.sentimentDistribution.map((item) => (
                     <div key={item.name} className="flex items-center justify-between text-xs">
@@ -755,26 +716,24 @@ const WeeklyReport = ({
               {/* Narrativa */}
               <div>
                 <p className="text-sm font-medium mb-3">Foco de Narrativa</p>
-                <div className="printable-chart-small">
-                  <ResponsiveContainer width="100%" height={140}>
-                    <PieChart>
-                      <Pie 
-                        data={dashboardData.narrativaDistribution} 
-                        cx="50%" 
-                        cy="50%" 
-                        innerRadius={40} 
-                        outerRadius={60} 
-                        paddingAngle={5} 
-                        dataKey="value"
-                      >
-                        {dashboardData.narrativaDistribution.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
+                <ResponsiveContainer width="100%" height={140}>
+                  <PieChart>
+                    <Pie 
+                      data={dashboardData.narrativaDistribution} 
+                      cx="50%" 
+                      cy="50%" 
+                      innerRadius={40} 
+                      outerRadius={60} 
+                      paddingAngle={5} 
+                      dataKey="value"
+                    >
+                      {dashboardData.narrativaDistribution.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
@@ -793,19 +752,14 @@ const WeeklyReport = ({
                 </CardTitle>
                 <CardDescription>Rendimiento de tus campañas de monitoreo</CardDescription>
               </div>
-              <Button variant="ghost" onClick={() => handleNavigate('/user/campaigns')} className="no-print">
+              <Button variant="ghost" onClick={() => handleNavigate('/user/campaigns')}>
                 Ver todas
                 <ArrowUpRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
           </CardHeader>
-<<<<<<< HEAD
-          <CardContent className="printable-card-content">
-            <div className="grid grid-cols-3 gap-6">
-=======
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
->>>>>>> 57a8be5e7bf01a27005f95d176b39d6c5fa7d2ab
               {dashboardData.campaigns.map((campaign) => (
                 <CampaignCard 
                   key={campaign.id} 
@@ -820,20 +774,15 @@ const WeeklyReport = ({
 
       {/* FODA + Actores Clave + Actividad */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-<<<<<<< HEAD
-        <div className="grid grid-cols-12 gap-6 printable-grid">
-          
-=======
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
 
->>>>>>> 57a8be5e7bf01a27005f95d176b39d6c5fa7d2ab
           {/* FODA - 4 cols */}
           <Card className="lg:col-span-4 shadow-lg">
             <CardHeader>
               <CardTitle>Análisis FODA</CardTitle>
               <CardDescription>Resumen estratégico</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 printable-card-content">
+            <CardContent className="space-y-4">
               <div className="p-4 rounded-lg bg-green-50 border border-green-200">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xl">✓</span>
@@ -896,12 +845,6 @@ const WeeklyReport = ({
               <CardTitle>Actores y Medios Clave</CardTitle>
               <CardDescription>Influencia en la narrativa</CardDescription>
             </CardHeader>
-<<<<<<< HEAD
-            <CardContent className="space-y-3 printable-card-content">
-              {dashboardData.actoresClave.map((actor, idx) => (
-                <ActorCard key={idx} actor={actor} />
-              ))}
-=======
             <CardContent className="space-y-3">
               {dashboardData.actoresClave && dashboardData.actoresClave.length > 0 ? (
                 dashboardData.actoresClave.map((actor, idx) => (
@@ -913,7 +856,6 @@ const WeeklyReport = ({
                   <p className="text-gray-500 text-sm">No hay actores identificados</p>
                 </div>
               )}
->>>>>>> 57a8be5e7bf01a27005f95d176b39d6c5fa7d2ab
             </CardContent>
           </Card>
 
@@ -923,12 +865,6 @@ const WeeklyReport = ({
               <CardTitle>Actividad Reciente</CardTitle>
               <CardDescription>Últimas actualizaciones del sistema</CardDescription>
             </CardHeader>
-<<<<<<< HEAD
-            <CardContent className="space-y-3 printable-card-content">
-              {dashboardData.recentActivity.map((activity, idx) => (
-                <ActivityItem key={idx} activity={activity} />
-              ))}
-=======
             <CardContent className="space-y-3">
               {dashboardData.recentActivity && dashboardData.recentActivity.length > 0 ? (
                 dashboardData.recentActivity.map((activity, idx) => (
@@ -940,7 +876,6 @@ const WeeklyReport = ({
                   <p className="text-gray-500 text-sm">Sin actividad en este momento</p>
                 </div>
               )}
->>>>>>> 57a8be5e7bf01a27005f95d176b39d6c5fa7d2ab
             </CardContent>
           </Card>
         </div>
@@ -952,50 +887,6 @@ const WeeklyReport = ({
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-<<<<<<< HEAD
-                <CardTitle>Palabras Clave Detectadas</CardTitle>
-                <CardDescription>Términos más relevantes del período analizado</CardDescription>
-              </div>
-              <div className="flex gap-3 no-print">
-                <Button variant="outline" className="gap-2">
-                  <Download className="h-4 w-4" />
-                  Descargar Reporte PDF
-                </Button>
-                <Button variant="outline" className="gap-2">
-                  <FileText className="h-4 w-4" />
-                  Ver Reporte Completo
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="printable-card-content">
-            <div className="flex flex-wrap gap-3">
-              {dashboardData.keywords.map((kw, idx) => {
-                const sentimentColors = {
-                  positive: 'hover:bg-green-500 hover:border-green-600',
-                  neutral: 'hover:bg-yellow-500 hover:border-yellow-600',
-                  negative: 'hover:bg-red-500 hover:border-red-600',
-                };
-                return (
-                  <motion.div
-                    key={kw.word}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: idx * 0.05 }}
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <Badge 
-                      variant="outline" 
-                      className={`text-base px-4 py-2 cursor-pointer transition-all ${sentimentColors[kw.sentiment]} hover:text-white`}
-                    >
-                      #{kw.word}
-                      <span className="ml-2 text-xs opacity-70">({kw.frequency})</span>
-                    </Badge>
-                  </motion.div>
-                );
-              })}
-            </div>
-=======
                 <CardTitle>Artículos Analizados</CardTitle>
                 <CardDescription>
                   {dashboardData.analyzedArticles?.length || 0} artículos analizados en este período
@@ -1016,12 +907,10 @@ const WeeklyReport = ({
                 <p className="text-gray-600">No hay artículos analizados disponibles</p>
               </div>
             )}
->>>>>>> 57a8be5e7bf01a27005f95d176b39d6c5fa7d2ab
           </CardContent>
         </Card>
       </motion.div>
 
-    </div>
     </div>
   );
 };
