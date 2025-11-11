@@ -300,6 +300,12 @@ export function transformSmartReportToDashboard(smartReportData) {
     recentActivity: recentActivity.length > 0 ? recentActivity : [],
     analyzedArticles: analyzedArticles.length > 0 ? analyzedArticles : [],
 
+    // Datos originales necesarios para compatibilidad
+    politician,
+    results,
+    summary,
+    metadata,
+
     // Datos originales (por si se necesitan)
     _rawData: {
       politician,
