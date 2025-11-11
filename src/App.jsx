@@ -8,48 +8,32 @@ import FormSection from '@/components/FormSection';
 import InstructionsSection from '@/components/InstructionsSection';
 import ResultsView from '@/components/ResultsView';
 import DailyReport from '@/components/DailyReport';
+import ReportsLayout from '@/components/ReportsLayout';
+import AnalysisManager from '@/components/AnalysisManager';
 import { getAnalyses, getAnalysisById } from './lib/api';
 import { transformSmartReportToDashboard } from './lib/transformData';
+import { saveWeeklyReport, saveDailyReport, getAllPoliticians, setCurrentPolitician, migrateOldReports } from './lib/storage';
 
 // URL de la API (Netlify / local)
 
 const MIN_REQUIRED = MIN_URLS;
 
 function App() {
-  const [view, setView] = useState('results'); // 'form', 'results', or 'dailyReport'
+  const [view, setView] = useState('form'); // 'form', 'results', 'dailyReport', or 'reports'
   const [formData, setFormData] = useState({ name: '', office: '', urls: '' });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [data, setData] = useState(null); // { politician, results, summary, metadata }
   const [analyses, setAnalyses] = useState([]); // List of available analyses
   const [urlCount, setUrlCount] = useState(0);
   const [analyzedUrls, setAnalyzedUrls] = useState([]); // URLs del último análisis
+  const [reportsRefreshKey, setReportsRefreshKey] = useState(0); // Para forzar recarga de ReportsLayout
   const { toast } = useToast();
   const resultsRef = useRef(null);
 
-  useEffect(() => {
-    const loadAnalyses = async () => {
-      try {
-        const analysesList = await getAnalyses();
-        setAnalyses(analysesList);
-        if (analysesList.length > 0) {
-          // Load the latest analysis by default
-          handleAnalysisSelection(analysesList[0].id);
-        }
-      } catch (error) {
-        toast({
-          title: 'Error al cargar análisis',
-          description: 'No se pudieron cargar los análisis anteriores.',
-          variant: 'destructive',
-        });
-      }
-    };
+  // Estado de progreso
+  const [progress, setProgress] = useState({ total: 0, done: 0, percent: 0 });
 
-    if (view === 'results') {
-      loadAnalyses();
-    }
-  }, [view]);
-
-  const handleAnalysisSelection = async (id) => {
+  const handleAnalysisSelection = useCallback(async (id) => {
     try {
       const analysisData = await getAnalysisById(id);
       const dashboardData = transformSmartReportToDashboard(analysisData);
@@ -57,19 +41,57 @@ function App() {
         ...dashboardData,
         _original: analysisData,
       });
-      setAnalyzedUrls(analysisData.urls);
+      setAnalyzedUrls(analysisData.urls || []);
     } catch (error) {
+      console.error('Error loading analysis:', error);
       toast({
         title: 'Error al cargar el análisis',
         description: `No se pudo cargar el análisis seleccionado.`,
         variant: 'destructive',
       });
     }
-  };
+  }, [toast]);
 
+  // Cargar análisis desde la API o localStorage al montar
+  useEffect(() => {
+    const loadInitialData = async () => {
+      // Primero migrar reportes antiguos si existen
+      migrateOldReports();
 
-  // Estado de progreso
-  const [progress, setProgress] = useState({ total: 0, done: 0, percent: 0 });
+      // Luego verificar si hay datos en localStorage
+      const politicians = getAllPoliticians();
+
+      // Luego intentar cargar desde la API
+      try {
+        const analysesList = await getAnalyses();
+        setAnalyses(analysesList);
+
+        if (analysesList.length > 0) {
+          // Si hay análisis en la API, cargar el primero
+          await handleAnalysisSelection(analysesList[0].id);
+          setView('results');
+        } else if (politicians.length > 0) {
+          // Si no hay en la API pero sí en localStorage, usar ReportsLayout
+          setView('reports');
+        } else {
+          // Si no hay datos, mostrar formulario
+          setView('form');
+        }
+      } catch (error) {
+        console.error('Error loading analyses from API:', error);
+
+        // Si falla la API pero hay datos en localStorage, usar ReportsLayout
+        if (politicians.length > 0) {
+          setView('reports');
+        } else {
+          // Si no hay datos en ningún lado, mostrar formulario
+          setView('form');
+        }
+      }
+    };
+
+    loadInitialData();
+  }, [handleAnalysisSelection]);
 
   // Normaliza: 1 URL por línea, añade https si falta, ignora líneas con 0 o >1 URLs, elimina duplicados
   // REEMPLAZO: normalizeUrls más permisiva (soporta \n , ;)
@@ -153,19 +175,27 @@ function App() {
       console.log('🎨 Dashboard data after transformation:', dashboardData);
 
       // Guardar tanto los datos transformados como los originales
-      setData({
+      const fullData = {
         ...dashboardData,
-        _original: responseData // Mantener referencia a datos originales
-      });
+        _original: responseData, // Mantener referencia a datos originales
+        urls: urls // Agregar URLs analizadas
+      };
+
+      setData(fullData);
       setAnalyzedUrls(urls); // Guardar URLs para posibles re-cargas
       setProgress({ total: urls.length, done: urls.length, percent: 100 });
+
+      // Guardar el reporte semanal en localStorage
+      saveWeeklyReport(formData.name.trim(), fullData);
+      console.log('💾 Reporte semanal guardado en localStorage');
+
       setView('results');
 
       // Verificar si es análisis nuevo o recuperado de BD
       const isCached = responseData.metadata?.is_cached || false;
       const message = isCached
-        ? 'Reporte recuperado de la base de datos'
-        : `Se analizaron ${urls.length} URLs exitosamente`;
+        ? 'Reporte recuperado de la base de datos y guardado localmente'
+        : `Se analizaron ${urls.length} URLs exitosamente y se guardó el reporte`;
 
       toast({
         title: isCached ? '✅ Reporte encontrado!' : '¡Análisis completado!',
@@ -193,6 +223,25 @@ function App() {
 
   const handleShowDailyReport = () => {
     setView('dailyReport');
+  };
+
+  const handleShowReports = () => {
+    setView('manage'); // Mostrar gestor de análisis
+  };
+
+  const handleSelectFromManager = async (analysis) => {
+    // Si es análisis de API (tiene campo 'politician')
+    if (analysis.politician && analysis.id) {
+      await handleAnalysisSelection(analysis.id);
+      setView('results');
+    } else {
+      // Si es análisis local (de localStorage) - tiene formato de politician directamente
+      // Establecer como político actual antes de cambiar la vista
+      setCurrentPolitician(analysis.id);
+      // Incrementar refreshKey para forzar recarga del ReportsLayout
+      setReportsRefreshKey(prev => prev + 1);
+      setView('reports');
+    }
   };
 
   const handleDownloadPdf = useCallback(async () => {
@@ -272,7 +321,24 @@ function App() {
           </motion.div>
 
           <AnimatePresence mode="wait">
-            {view === 'form' ? (
+            {view === 'manage' ? (
+              <motion.div key="manage-analyses" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+                <AnalysisManager
+                  onBack={handleNewAnalysis}
+                  onSelectAnalysis={handleSelectFromManager}
+                />
+              </motion.div>
+            ) : view === 'reports' ? (
+              <motion.div key="reports-layout" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+                <ReportsLayout
+                  onNewAnalysis={handleNewAnalysis}
+                  onDownloadPdf={handleDownloadPdf}
+                  formatDate={formatDate}
+                  getBadgeVariant={getBadgeVariant}
+                  refreshKey={reportsRefreshKey}
+                />
+              </motion.div>
+            ) : view === 'form' ? (
               <motion.div key="form" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
                 <div className="space-y-8">
                   <FormSection
@@ -284,6 +350,7 @@ function App() {
                     urlCount={urlCount}
                     minRequired={MIN_REQUIRED}
                     onShowDailyReport={handleShowDailyReport}
+                    onShowReports={handleShowReports}
                   />
 
                   {/* NUEVO: barra de progreso simple */}

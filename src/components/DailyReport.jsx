@@ -8,7 +8,7 @@ import { useToast } from '@/components/ui/use-toast';
 import {
   Newspaper, Calendar, ArrowLeft, Download, Share2, BarChart3,
   TrendingUp, TrendingDown, Minus, Eye, MessageCircle, Heart,
-  Sparkles, Tag, ExternalLink, Smile, Frown, ThumbsUp, ThumbsDown, AlertCircle
+  Sparkles, Tag, ExternalLink, Smile, Frown, ThumbsUp, ThumbsDown, AlertCircle, Printer
 } from 'lucide-react';
 import { API_BASE } from '../config';
 import { transformDailySummaryToReport } from '../lib/transformDailyReport';
@@ -283,6 +283,10 @@ const DailyReport = ({ actorName, onBack }) => {
     toast({ title: 'Función no implementada', description: 'La opción de compartir aún no está disponible.' });
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   // Estados de carga y error
   if (loading) {
     return (
@@ -358,20 +362,20 @@ const DailyReport = ({ actorName, onBack }) => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 p-8">
-      <div className="max-w-[1400px] mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 p-4 md:p-8">
+      <div className="max-w-[1400px] mx-auto space-y-4 md:space-y-6">
         
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
           <Card className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 text-white shadow-2xl border-0 overflow-hidden">
             <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMTUiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-40" />
-            
-            <CardContent className="p-6 relative">
+
+            <CardContent className="p-4 md:p-6 relative">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Button 
-                      variant="ghost" 
+                  <div className="flex items-center gap-3 mb-3 no-print">
+                    <Button
+                      variant="ghost"
                       size="sm"
                       className="text-white hover:bg-white/20 -ml-2"
                       onClick={onBack}
@@ -385,15 +389,15 @@ const DailyReport = ({ actorName, onBack }) => {
                       Reporte Diario
                     </Badge>
                   </div>
-                  <h1 className="text-4xl font-bold mb-2 text-white drop-shadow-sm">{actorName}</h1>
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 text-white drop-shadow-sm">{actorName}</h1>
                   <div className="flex items-center gap-2 text-white/90">
                     <Calendar className="h-4 w-4" />
                     <p className="text-base">{fechaActual}</p>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
+                <div className="flex gap-2 no-print">
+                  <Button
+                    variant="outline"
                     size="sm"
                     className="bg-white/20 border-white/40 text-white hover:bg-white/30 backdrop-blur-sm"
                     onClick={handleShare}
@@ -401,7 +405,16 @@ const DailyReport = ({ actorName, onBack }) => {
                     <Share2 className="h-4 w-4 mr-2" />
                     Compartir
                   </Button>
-                  <Button 
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-white/20 border-white/40 text-white hover:bg-white/30 backdrop-blur-sm"
+                    onClick={handlePrint}
+                  >
+                    <Printer className="h-4 w-4 mr-2" />
+                    Imprimir
+                  </Button>
+                  <Button
                     size="sm"
                     className="bg-white text-emerald-600 hover:bg-gray-50 shadow-lg font-semibold"
                     onClick={handleDownload}

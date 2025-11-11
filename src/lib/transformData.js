@@ -15,8 +15,16 @@ export function transformSmartReportToDashboard(smartReportData) {
 
   const { politician, results = [], summary = {}, metadata = {} } = smartReportData;
 
+  console.log('📊 DATOS EXTRAÍDOS:', {
+    politician,
+    resultsLength: results.length,
+    summary,
+    metadata
+  });
+
   // Calcular métricas desde los results
   const totalMenciones = results.length;
+  console.log('📈 Total menciones:', totalMenciones);
 
   // Calcular sentimiento promedio (positive=100, neutral=50, negative=0)
   const sentimentValues = {
@@ -44,69 +52,192 @@ export function transformSmartReportToDashboard(smartReportData) {
   // Estimar alcance (simulado por ahora)
   const alcanceEstimado = totalMenciones * 2500; // Aproximación
 
-  // Generar período
-  const now = new Date();
-  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const periodo = `${weekAgo.getDate()}-${now.getDate()} ${now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
+  // Generar período basado en fechas reales de los results
+  let periodo;
+  if (results && results.length > 0) {
+    const fechas = results
+      .map(r => r.meta?.published_at)
+      .filter(Boolean)
+      .map(d => new Date(d))
+      .sort((a, b) => a - b);
 
-  // Generar diagnóstico basado en sentimiento predominante
-  const predominant = summary.predominant || 'neutral';
-  const diagnosticos = {
-    positive: `${politician?.name || 'El actor político'} mantiene una percepción predominantemente positiva en medios digitales. Se recomienda mantener estrategia actual y capitalizar momentum.`,
-    neutral: `${politician?.name || 'El actor político'} presenta una percepción equilibrada en medios digitales. Oportunidad para reforzar mensajes clave y aumentar engagement.`,
-    negative: `${politician?.name || 'El actor político'} enfrenta desafíos de percepción en medios digitales. Se recomienda estrategia de comunicación proactiva y gestión de crisis.`
-  };
-
-  // Calcular tendencias (simuladas - en producción vendrían de comparación histórica)
-  const mencionesChange = Math.round((Math.random() * 30) - 10); // -10 a +20
-  const sentimientoChange = Math.round((Math.random() * 20) - 5); // -5 a +15
-  const alcanceChange = Math.round((Math.random() * 25) - 5); // -5 a +20
-
-  // Datos de gráficas - Tendencia semanal (simulada)
-  const trendData = [];
-  const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-  for (let i = 0; i < 7; i++) {
-    trendData.push({
-      dia: days[i],
-      menciones: Math.floor(totalMenciones / 7) + Math.floor(Math.random() * 5),
-      sentimiento: avgSentiment + Math.floor(Math.random() * 20 - 10)
-    });
+    if (fechas.length > 0) {
+      const fechaInicio = fechas[0];
+      const fechaFin = fechas[fechas.length - 1];
+      periodo = `${fechaInicio.getDate()}-${fechaFin.getDate()} ${fechaFin.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
+    } else {
+      const now = new Date();
+      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      periodo = `${weekAgo.getDate()}-${now.getDate()} ${now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
+    }
+  } else {
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    periodo = `${weekAgo.getDate()}-${now.getDate()} ${now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
   }
 
-  // Distribución de sentimientos
+  // Calcular sentimientos DIRECTAMENTE desde results (no desde summary)
+  let positiveCount = 0;
+  let negativeCount = 0;
+  let neutralCount = 0;
+
+  results.forEach(r => {
+    const sentiment = r.ai?.sentiment?.toLowerCase() || 'neutral';
+    if (sentiment === 'positive') positiveCount++;
+    else if (sentiment === 'negative') negativeCount++;
+    else neutralCount++;
+  });
+
+  console.log('💭 Sentimientos calculados desde results:', { positiveCount, negativeCount, neutralCount });
+
+  // Extraer topics principales
+  const topicsSet = new Set();
+  const topicMentions = {};
+  results.forEach(r => {
+    if (r.ai?.topic) {
+      topicsSet.add(r.ai.topic);
+      topicMentions[r.ai.topic] = (topicMentions[r.ai.topic] || 0) + 1;
+    }
+  });
+
+  // Ordenar topics por menciones
+  const sortedTopics = Array.from(topicsSet)
+    .map(topic => ({ topic, count: topicMentions[topic] }))
+    .sort((a, b) => b.count - a.count);
+
+  const topTopic = sortedTopics[0]?.topic || 'temas variados';
+  const topTopicCount = sortedTopics[0]?.count || 0;
+
+  // Obtener plataforma principal (platformCounts ya se calculó arriba)
+  const mainPlatform = Object.entries(platformCounts)
+    .sort((a, b) => b[1] - a[1])[0]?.[0] || 'medios digitales';
+
+  // Calcular sentimiento predominante desde results
+  let predominant = 'neutral';
+  if (positiveCount > negativeCount && positiveCount > neutralCount) {
+    predominant = 'positive';
+  } else if (negativeCount > positiveCount && negativeCount > neutralCount) {
+    predominant = 'negative';
+  }
+
+  console.log('🎯 Sentimiento predominante:', predominant);
+
+  // Generar diagnóstico REAL basado en datos
+  let diagnostico = '';
+
+  if (predominant === 'positive') {
+    diagnostico = `${politician?.name || 'El actor político'} mantiene una percepción predominantemente positiva en ${mainPlatform} con ${positiveCount} menciones positivas de ${totalMenciones} totales (${Math.round((positiveCount/totalMenciones)*100)}%). `;
+    diagnostico += `El tema principal que genera engagement es "${topTopic}" con ${topTopicCount} menciones. `;
+    diagnostico += `Se recomienda mantener la estrategia actual y capitalizar este momentum positivo.`;
+  } else if (predominant === 'negative') {
+    diagnostico = `${politician?.name || 'El actor político'} enfrenta desafíos de percepción con ${negativeCount} menciones negativas de ${totalMenciones} totales (${Math.round((negativeCount/totalMenciones)*100)}%). `;
+    diagnostico += `La mayor parte de la discusión se centra en "${topTopic}". `;
+    diagnostico += `Se recomienda implementar estrategia de comunicación proactiva y gestión de crisis enfocada en este tema.`;
+  } else {
+    diagnostico = `${politician?.name || 'El actor político'} presenta una percepción equilibrada con ${positiveCount} menciones positivas, ${neutralCount} neutrales y ${negativeCount} negativas. `;
+    diagnostico += `"${topTopic}" es el tema más discutido con ${topTopicCount} menciones. `;
+    diagnostico += `Existe oportunidad para reforzar mensajes clave y aumentar engagement positivo.`;
+  }
+
+  // Calcular tendencias REALES comparando con período anterior
+  // Nota: Si no hay datos históricos, los cambios serán 0
+  const mencionesChange = 0; // Se puede calcular si hay historical data
+  const sentimientoChange = 0;
+  const alcanceChange = 0;
+
+  // Datos de gráficas - Tendencia semanal REAL (agrupar por día)
+  const trendData = [];
+  const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+  // Agrupar results por día de la semana
+  const resultsByDay = {};
+  results.forEach(r => {
+    const date = r.meta?.published_at ? new Date(r.meta.published_at) : new Date();
+    const dayIndex = date.getDay(); // 0 = Dom, 1 = Lun, etc.
+    const dayName = days[dayIndex];
+
+    if (!resultsByDay[dayName]) {
+      resultsByDay[dayName] = [];
+    }
+    resultsByDay[dayName].push(r);
+  });
+
+  // Generar datos de tendencia por día
+  days.forEach(day => {
+    const dayResults = resultsByDay[day] || [];
+    const dayMenciones = dayResults.length;
+
+    // Calcular sentimiento promedio del día
+    const daySentiment = dayResults.length > 0
+      ? Math.round(
+          dayResults.reduce((acc, r) => {
+            const sentiment = r.ai?.sentiment?.toLowerCase() || 'neutral';
+            return acc + (sentimentValues[sentiment] || 50);
+          }, 0) / dayResults.length
+        )
+      : avgSentiment;
+
+    trendData.push({
+      day: day,  // Usar 'day' en lugar de 'dia' para compatibilidad con ResultsView
+      mentions: dayMenciones,  // Usar 'mentions' en lugar de 'menciones'
+      sentiment: daySentiment  // Usar 'sentiment' en lugar de 'sentimiento'
+    });
+  });
+
+  // Distribución de sentimientos (calcular porcentajes y counts)
   const sentimentDistribution = [
     {
       name: 'Positivo',
-      value: summary.sentiments?.positive || 0,
+      value: totalMenciones > 0 ? Math.round((positiveCount / totalMenciones) * 100) : 0,
+      count: positiveCount,
       color: '#10b981'
     },
     {
       name: 'Neutral',
-      value: summary.sentiments?.neutral || 0,
+      value: totalMenciones > 0 ? Math.round((neutralCount / totalMenciones) * 100) : 0,
+      count: neutralCount,
       color: '#f59e0b'
     },
     {
       name: 'Negativo',
-      value: summary.sentiments?.negative || 0,
+      value: totalMenciones > 0 ? Math.round((negativeCount / totalMenciones) * 100) : 0,
+      count: negativeCount,
       color: '#ef4444'
     }
   ];
 
-  // Distribución de narrativa (por stance)
+  // Distribución de narrativa (por stance) - calcular DIRECTAMENTE desde results
+  let favorCount = 0;
+  let stanceNeutralCount = 0;
+  let againstCount = 0;
+
+  results.forEach(r => {
+    const stance = r.ai?.stance?.toLowerCase() || 'neutral';
+    if (stance === 'favor') favorCount++;
+    else if (stance === 'against') againstCount++;
+    else stanceNeutralCount++;
+  });
+
+  const totalStances = favorCount + stanceNeutralCount + againstCount;
+  console.log('📊 Stances calculadas desde results:', { favorCount, stanceNeutralCount, againstCount });
+
   const narrativaDistribution = [
     {
       name: 'A Favor',
-      value: summary.stances?.favor || 0,
+      value: totalStances > 0 ? Math.round((favorCount / totalStances) * 100) : 0,
+      count: favorCount,
       color: '#10b981'
     },
     {
       name: 'Neutral',
-      value: summary.stances?.neutral || 0,
+      value: totalStances > 0 ? Math.round((stanceNeutralCount / totalStances) * 100) : 0,
+      count: stanceNeutralCount,
       color: '#f59e0b'
     },
     {
       name: 'En Contra',
-      value: summary.stances?.against || 0,
+      value: totalStances > 0 ? Math.round((againstCount / totalStances) * 100) : 0,
+      count: againstCount,
       color: '#ef4444'
     }
   ];
@@ -117,88 +248,189 @@ export function transformSmartReportToDashboard(smartReportData) {
     value: count
   }));
 
-  // Campañas activas (extraídas de topics)
-  const topicsSet = new Set();
-  const topicMentions = {};
-  results.forEach(r => {
-    if (r.ai?.topic) {
-      topicsSet.add(r.ai.topic);
-      topicMentions[r.ai.topic] = (topicMentions[r.ai.topic] || 0) + 1;
-    }
-  });
+  // Campañas activas (usar topics ya calculados arriba)
   const campanasActivas = Math.min(topicsSet.size, 5);
 
-  const campaigns = topicsSet.size > 0
-    ? Array.from(topicsSet).slice(0, 3).map((topic, idx) => {
-        const mentions = topicMentions[topic] || 0;
+  const campaigns = sortedTopics.length > 0
+    ? sortedTopics.slice(0, 3).map((topicData, idx) => {
+        const topic = topicData.topic;
+        const mentions = topicData.count;
+
+        // Calcular sentimiento real del topic
+        const topicResults = results.filter(r => r.ai?.topic === topic);
+        const topicSentiment = topicResults.length > 0
+          ? topicResults.reduce((acc, r) => {
+              const sentiment = r.ai?.sentiment?.toLowerCase() || 'neutral';
+              return acc + (sentimentValues[sentiment] || 50);
+            }, 0) / topicResults.length / 100
+          : 0.5;
+
         return {
           name: topic,
           mentions: mentions,
-          sentiment: 0.5 + (Math.random() * 0.3), // 0.5-0.8
+          sentiment: topicSentiment,
           trend: idx === 0 ? 'up' : idx === 1 ? 'stable' : 'down',
           alcance: `${Math.floor(mentions * 2000).toLocaleString()}`,
-          engagement: `${(Math.random() * 5 + 2).toFixed(1)}%`
+          engagement: `${mentions}` // Número de menciones como engagement
         };
       })
     : [];
 
-  // FODA (basado en análisis)
-  const positiveCount = summary.sentiments?.positive || 0;
-  const negativeCount = summary.sentiments?.negative || 0;
-  const neutralCount = summary.sentiments?.neutral || 0;
+  // FODA (basado en análisis REAL de los datos)
+  const fortalezas = [];
+  const oportunidades = [];
+  const debilidades = [];
+  const amenazas = [];
+
+  // FORTALEZAS - basadas en datos positivos reales
+  if (positiveCount > negativeCount) {
+    fortalezas.push(`Percepción positiva en ${mainPlatform} (${positiveCount} menciones positivas)`);
+  }
+  if (sortedTopics.length > 0 && sortedTopics[0].count > 2) {
+    fortalezas.push(`Fuerte asociación con "${sortedTopics[0].topic}" (${sortedTopics[0].count} menciones)`);
+  }
+  if (platformDist.length > 2) {
+    fortalezas.push(`Presencia diversificada en ${platformDist.length} plataformas digitales`);
+  }
+  if (totalMenciones > 10) {
+    fortalezas.push(`Alto volumen de menciones (${totalMenciones} referencias en el período)`);
+  }
+  // Si no hay fortalezas, agregar al menos una genérica
+  if (fortalezas.length === 0) {
+    fortalezas.push('Presencia digital establecida con oportunidad de crecimiento');
+  }
+
+  // OPORTUNIDADES - basadas en gaps en los datos
+  if (platformDist.length <= 2) {
+    oportunidades.push('Expansión a nuevas plataformas digitales para aumentar alcance');
+  }
+  if (neutralCount > positiveCount + negativeCount) {
+    oportunidades.push('Gran audiencia neutral susceptible a mensajes positivos');
+  }
+  if (sortedTopics.length > 1) {
+    oportunidades.push(`Diversificar contenido más allá de "${sortedTopics[0].topic}"`);
+  }
+  oportunidades.push('Implementar estrategia de contenido multimedia para mayor engagement');
+  if (summary.stances?.favor < totalMenciones * 0.3) {
+    oportunidades.push('Incrementar posicionamiento favorable en temas clave');
+  }
+
+  // DEBILIDADES - basadas en datos negativos reales
+  if (negativeCount > positiveCount) {
+    debilidades.push(`Percepción negativa predominante (${negativeCount} menciones negativas)`);
+  }
+  if (totalMenciones < 5) {
+    debilidades.push('Alcance limitado en medios digitales');
+  }
+  if (platformDist.length === 1) {
+    debilidades.push(`Dependencia de una sola plataforma (${mainPlatform})`);
+  }
+  if (summary.stances?.against > summary.stances?.favor) {
+    debilidades.push('Mayor número de posturas en contra que a favor');
+  }
+  // Si no hay debilidades específicas, agregar una genérica
+  if (debilidades.length === 0) {
+    debilidades.push('Oportunidad de optimizar estrategia de comunicación digital');
+  }
+
+  // AMENAZAS - basadas en riesgos identificados en los datos
+  if (negativeCount > positiveCount * 0.5) {
+    amenazas.push('Narrativa negativa con potencial de amplificación');
+  }
+  if (sortedTopics.length > 0 && negativeCount > 3) {
+    amenazas.push(`Riesgo de asociación negativa con "${sortedTopics[0].topic}"`);
+  }
+  amenazas.push('Competencia activa en el espacio digital');
+  if (platformDist.length > 0) {
+    amenazas.push('Cambios en algoritmos de plataformas pueden afectar visibilidad');
+  }
+  if (summary.top_entities && summary.top_entities.length > 3) {
+    amenazas.push('Múltiples actores compitiendo por atención en temas similares');
+  }
 
   const foda = {
-    fortalezas: positiveCount > negativeCount
-      ? ['Percepción positiva en redes', 'Alto engagement digital', 'Narrativa coherente']
-      : positiveCount > 0
-      ? ['Presencia digital activa', 'Base de seguidores leales']
-      : ['Oportunidad de construcción de marca'],
-    oportunidades: ['Expansión en nuevas plataformas', 'Colaboraciones estratégicas', 'Contenido multimedia'],
-    debilidades: negativeCount > positiveCount
-      ? ['Gestión de crisis reactiva', 'Mensajes inconsistentes', 'Baja interacción']
-      : totalMenciones < 5
-      ? ['Alcance limitado', 'Poca visibilidad']
-      : ['Alcance limitado en ciertos segmentos'],
-    amenazas: ['Desinformación', 'Competencia activa', 'Cambios de algoritmos']
+    fortalezas,
+    oportunidades,
+    debilidades,
+    amenazas
   };
 
-  // Actores clave (de entidades)
-  const actoresClave = summary.top_entities && summary.top_entities.length > 0
-    ? summary.top_entities.slice(0, 5).map(entity => {
-        // Parsear "Nombre (count)"
-        const match = entity.match(/^(.+?)\s*\((\d+)\)$/);
-        const nombre = match ? match[1] : entity;
-        const menciones = match ? parseInt(match[2]) : 1;
+  // Actores clave - primero intentar desde summary.top_entities, si no desde topics
+  let actoresClave = [];
+
+  if (summary.top_entities && summary.top_entities.length > 0) {
+    // Si hay entidades en summary, usarlas
+    actoresClave = summary.top_entities.slice(0, 5).map(entity => {
+      // Parsear "Nombre (count)"
+      const match = entity.match(/^(.+?)\s*\((\d+)\)$/);
+      const nombre = match ? match[1] : entity;
+      const menciones = match ? parseInt(match[2]) : 1;
+
+      return {
+        actor: nombre,
+        rol: 'Entidad',
+        menciones: menciones,
+        sentiment: menciones > 3 ? 'positive' : 'neutral',
+        impacto: menciones > 5 ? 'alto' : menciones > 2 ? 'medio' : 'bajo'
+      };
+    });
+  } else if (sortedTopics.length > 0) {
+    // Si no hay entidades pero hay topics, usar los topics como actores
+    actoresClave = sortedTopics.slice(0, 5).map(topicData => {
+      const topicResults = results.filter(r => r.ai?.topic === topicData.topic);
+      const topicPositive = topicResults.filter(r => r.ai?.sentiment === 'positive').length;
+      const sentiment = topicPositive > topicResults.length / 2 ? 'positive' : 'neutral';
+
+      return {
+        actor: topicData.topic,
+        rol: 'Tema',
+        menciones: topicData.count,
+        sentiment: sentiment,
+        impacto: topicData.count > 5 ? 'alto' : topicData.count > 2 ? 'medio' : 'bajo'
+      };
+    });
+  }
+
+  console.log('👥 Actores clave generados:', actoresClave);
+
+  // Actividad reciente - mostrar mensaje de "sin actividad"
+  const recentActivity = [];
+
+  // Artículos analizados (lista de URLs con su información)
+  const analyzedArticles = results && results.length > 0
+    ? results.map(r => {
+        // Generar título inteligente si no existe
+        let titulo = r.meta?.title;
+
+        if (!titulo || titulo.trim() === '') {
+          // Si no hay título, usar el summary truncado
+          if (r.ai?.summary) {
+            const summary = r.ai.summary;
+            // Tomar las primeras 80 caracteres del summary
+            titulo = summary.length > 80
+              ? summary.substring(0, 80) + '...'
+              : summary;
+          } else if (r.meta?.platform === 'facebook') {
+            // Para Facebook sin título ni summary, usar descripción genérica con fecha
+            const fecha = r.meta?.published_at ? new Date(r.meta.published_at).toLocaleDateString('es-ES') : '';
+            titulo = `Post de Facebook${fecha ? ` - ${fecha}` : ''}`;
+          } else {
+            titulo = 'Sin título';
+          }
+        }
 
         return {
-          nombre,
-          tipo: 'Político', // Simplificado
-          interacciones: menciones,
-          sentimiento: menciones > 3 ? 'positive' : 'neutral'
+          titulo,
+          descripcion: r.ai?.summary || 'Sin análisis disponible',
+          fecha: r.meta?.published_at || new Date().toISOString(),
+          link: r.meta?.url || '#',
+          sentiment: r.ai?.sentiment || 'neutral',
+          topic: r.ai?.topic || null,
+          stance: r.ai?.stance || null,
+          platform: r.meta?.platform || 'web'
         };
       })
     : [];
-
-  // Actividad reciente (últimas menciones)
-  const recentActivity = results && results.length > 0
-    ? results.slice(0, 10).map(r => ({
-        tipo: r.meta?.platform || 'web',
-        descripcion: r.meta?.title || r.ai?.summary || 'Mención',
-        fecha: r.meta?.published_at || new Date().toISOString(),
-        impacto: r.ai?.sentiment === 'positive' ? 'Alto' : r.ai?.sentiment === 'negative' ? 'Medio' : 'Bajo'
-      }))
-    : [];
-
-  // Keywords (de entidades y topics)
-  const keywords = [];
-  if (summary.top_entities) {
-    summary.top_entities.forEach(entity => {
-      const match = entity.match(/^(.+?)\s*\((\d+)\)$/);
-      if (match) {
-        keywords.push({ palabra: match[1], frecuencia: parseInt(match[2]) });
-      }
-    });
-  }
 
   // Determinar estado de métricas
   const getStatus = (value, threshold) => {
@@ -211,7 +443,7 @@ export function transformSmartReportToDashboard(smartReportData) {
   const dashboardData = {
     actor: politician?.name || 'Actor Político',
     periodo,
-    diagnostico: diagnosticos[predominant],
+    diagnostico,
 
     // KPIs principales
     totalMenciones,
@@ -256,7 +488,13 @@ export function transformSmartReportToDashboard(smartReportData) {
     // Actores y actividad
     actoresClave: actoresClave.length > 0 ? actoresClave : [],
     recentActivity: recentActivity.length > 0 ? recentActivity : [],
-    keywords: keywords.length > 0 ? keywords : [],
+    analyzedArticles: analyzedArticles.length > 0 ? analyzedArticles : [],
+
+    // Datos originales necesarios para compatibilidad
+    politician,
+    results,
+    summary,
+    metadata,
 
     // Datos originales (por si se necesitan)
     _rawData: {
