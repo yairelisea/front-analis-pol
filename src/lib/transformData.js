@@ -152,46 +152,57 @@ export function transformSmartReportToDashboard(smartReportData) {
       : avgSentiment;
 
     trendData.push({
-      dia: day,
-      menciones: dayMenciones,
-      sentimiento: daySentiment
+      day: day,  // Usar 'day' en lugar de 'dia' para compatibilidad con ResultsView
+      mentions: dayMenciones,  // Usar 'mentions' en lugar de 'menciones'
+      sentiment: daySentiment  // Usar 'sentiment' en lugar de 'sentimiento'
     });
   });
 
-  // Distribución de sentimientos
+  // Distribución de sentimientos (calcular porcentajes y counts)
   const sentimentDistribution = [
     {
       name: 'Positivo',
-      value: summary.sentiments?.positive || 0,
+      value: totalMenciones > 0 ? Math.round((positiveCount / totalMenciones) * 100) : 0,
+      count: positiveCount,
       color: '#10b981'
     },
     {
       name: 'Neutral',
-      value: summary.sentiments?.neutral || 0,
+      value: totalMenciones > 0 ? Math.round((neutralCount / totalMenciones) * 100) : 0,
+      count: neutralCount,
       color: '#f59e0b'
     },
     {
       name: 'Negativo',
-      value: summary.sentiments?.negative || 0,
+      value: totalMenciones > 0 ? Math.round((negativeCount / totalMenciones) * 100) : 0,
+      count: negativeCount,
       color: '#ef4444'
     }
   ];
 
-  // Distribución de narrativa (por stance)
+  // Distribución de narrativa (por stance) - calcular porcentajes y counts
+  const favorCount = summary.stances?.favor || 0;
+  const stanceNeutralCount = summary.stances?.neutral || 0;
+  const againstCount = summary.stances?.against || 0;
+  const totalStances = favorCount + stanceNeutralCount + againstCount;
+
   const narrativaDistribution = [
     {
       name: 'A Favor',
-      value: summary.stances?.favor || 0,
+      value: totalStances > 0 ? Math.round((favorCount / totalStances) * 100) : 0,
+      count: favorCount,
       color: '#10b981'
     },
     {
       name: 'Neutral',
-      value: summary.stances?.neutral || 0,
+      value: totalStances > 0 ? Math.round((stanceNeutralCount / totalStances) * 100) : 0,
+      count: stanceNeutralCount,
       color: '#f59e0b'
     },
     {
       name: 'En Contra',
-      value: summary.stances?.against || 0,
+      value: totalStances > 0 ? Math.round((againstCount / totalStances) * 100) : 0,
+      count: againstCount,
       color: '#ef4444'
     }
   ];
@@ -309,7 +320,7 @@ export function transformSmartReportToDashboard(smartReportData) {
     amenazas
   };
 
-  // Actores clave (de entidades)
+  // Actores clave (de entidades) - formato compatible con ActorCard
   const actoresClave = summary.top_entities && summary.top_entities.length > 0
     ? summary.top_entities.slice(0, 5).map(entity => {
         // Parsear "Nombre (count)"
@@ -318,39 +329,60 @@ export function transformSmartReportToDashboard(smartReportData) {
         const menciones = match ? parseInt(match[2]) : 1;
 
         return {
-          nombre,
-          tipo: 'Político', // Simplificado
-          interacciones: menciones,
-          sentimiento: menciones > 3 ? 'positive' : 'neutral'
+          actor: nombre,  // Cambiar 'nombre' a 'actor' para ActorCard
+          rol: 'Político', // Cambiar 'tipo' a 'rol' para ActorCard
+          menciones: menciones,  // Mantener 'menciones'
+          sentiment: menciones > 3 ? 'positive' : 'neutral',  // Cambiar 'sentimiento' a 'sentiment'
+          impacto: menciones > 5 ? 'alto' : menciones > 2 ? 'medio' : 'bajo'  // Agregar 'impacto'
         };
       })
     : [];
 
-  // Actividad reciente (últimas menciones)
+  // Actividad reciente (últimas menciones) - formato compatible con ActivityItem
   const recentActivity = results && results.length > 0
     ? results.slice(0, 10).map(r => {
         // Generar descripción inteligente
-        let descripcion = r.meta?.title;
+        let mensaje = r.meta?.title;
 
-        if (!descripcion || descripcion.trim() === '') {
+        if (!mensaje || mensaje.trim() === '') {
           // Si no hay título, usar el summary truncado
           if (r.ai?.summary) {
             const summary = r.ai.summary;
-            descripcion = summary.length > 100
+            mensaje = summary.length > 100
               ? summary.substring(0, 100) + '...'
               : summary;
           } else if (r.meta?.platform === 'facebook') {
-            descripcion = 'Post de Facebook';
+            mensaje = 'Post de Facebook';
           } else {
-            descripcion = 'Mención';
+            mensaje = 'Mención';
           }
         }
 
+        // Calcular tiempo relativo
+        const calcularTiempoRelativo = (fecha) => {
+          if (!fecha) return '1 hora';
+          const now = new Date();
+          const then = new Date(fecha);
+          const diffMs = now - then;
+          const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+          const diffDays = Math.floor(diffHours / 24);
+
+          if (diffDays > 0) return `${diffDays} día${diffDays > 1 ? 's' : ''}`;
+          if (diffHours > 0) return `${diffHours} hora${diffHours > 1 ? 's' : ''}`;
+          return 'menos de 1 hora';
+        };
+
+        // Determinar tipo y prioridad basado en sentimiento
+        const sentiment = r.ai?.sentiment?.toLowerCase() || 'neutral';
+        const tipo = sentiment === 'negative' ? 'alert' : sentiment === 'positive' ? 'success' : 'info';
+        const priority = sentiment === 'negative' ? 'high' : sentiment === 'positive' ? 'normal' : 'low';
+
         return {
-          tipo: r.meta?.platform || 'web',
-          descripcion,
-          fecha: r.meta?.published_at || new Date().toISOString(),
-          impacto: r.ai?.sentiment === 'positive' ? 'Alto' : r.ai?.sentiment === 'negative' ? 'Medio' : 'Bajo'
+          type: tipo,
+          priority: priority,
+          message: mensaje,
+          time: calcularTiempoRelativo(r.meta?.published_at),
+          source: r.meta?.platform || 'web'
         };
       })
     : [];
