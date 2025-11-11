@@ -632,7 +632,7 @@ const WeeklyReport = ({
           </Card>
 
           {/* Gráfica de Tendencia Semanal - 5 cols */}
-          <Card className="lg:col-span-5 shadow-lg">
+          <Card className="lg:col-span-5 shadow-lg hide-on-print">
             <CardHeader>
               <CardTitle>Tendencia Semanal</CardTitle>
               <CardDescription>Volumen de menciones por día</CardDescription>
@@ -672,7 +672,7 @@ const WeeklyReport = ({
           </Card>
 
           {/* Distribuciones - 3 cols */}
-          <Card className="lg:col-span-3 shadow-lg">
+          <Card className="lg:col-span-3 shadow-lg hide-on-print">
             <CardHeader>
               <CardTitle className="text-base">Distribuciones</CardTitle>
             </CardHeader>

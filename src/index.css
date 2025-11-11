@@ -66,7 +66,8 @@ body {
 /* Estilos de impresión */
 @media print {
   /* Ocultar elementos no necesarios */
-  .no-print {
+  .no-print,
+  .hide-on-print {
     display: none !important;
   }
 
@@ -303,8 +304,21 @@ body {
     gap: 0.5rem !important;
   }
 
-  .lg\:col-span-4 {
-    grid-column: span 4 !important;
+  /* Cuando se ocultan elementos, expandir los visibles */
+  .lg\:col-span-4:not(.hide-on-print) {
+    grid-column: span 12 !important;
+  }
+
+  /* Métricas del Reporte: cambiar de vertical a horizontal en impresión */
+  .lg\:col-span-4:not(.hide-on-print) .space-y-3 {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 0.5rem !important;
+    margin-top: 0 !important;
+  }
+
+  .lg\:col-span-4:not(.hide-on-print) .space-y-3 > * + * {
+    margin-top: 0 !important;
   }
 
   .lg\:col-span-5 {
