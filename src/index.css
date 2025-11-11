@@ -128,4 +128,21 @@ body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
+
+  /* Asegurar que las gráficas estén bien alineadas */
+  .recharts-wrapper {
+    display: block !important;
+    margin: 0 auto !important;
+  }
+
+  /* Grids de gráficas - mantener alineación */
+  .grid {
+    display: grid !important;
+  }
+
+  /* Asegurar que las cards mantengan su ancho */
+  .card,
+  [class*="Card"] {
+    width: 100% !important;
+  }
 }
