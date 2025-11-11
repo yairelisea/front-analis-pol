@@ -13,6 +13,7 @@ import ResultsView from './ResultsView';
 import DailyReport from './DailyReport';
 import {
   getCurrentPolitician,
+  getPoliticianById,
   saveWeeklyReport,
   saveDailyReport,
   getAllPoliticians
@@ -22,13 +23,14 @@ const ReportsLayout = ({
   onNewAnalysis,
   onDownloadPdf,
   formatDate,
-  getBadgeVariant
+  getBadgeVariant,
+  refreshKey // Nueva prop para forzar recarga
 }) => {
   const [currentPolitician, setCurrentPolitician] = useState(null);
   const [activeTab, setActiveTab] = useState('weekly'); // 'weekly' o 'daily'
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Cargar político actual al montar
+  // Cargar político actual al montar y cuando cambie refreshKey
   useEffect(() => {
     const politician = getCurrentPolitician();
     if (politician) {
@@ -40,7 +42,7 @@ const ReportsLayout = ({
         setActiveTab('daily');
       }
     }
-  }, []);
+  }, [refreshKey]); // Recargar cuando cambie refreshKey
 
   const handleSelectPolitician = (politician) => {
     setCurrentPolitician(politician);

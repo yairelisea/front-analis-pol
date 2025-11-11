@@ -12,7 +12,7 @@ import ReportsLayout from '@/components/ReportsLayout';
 import AnalysisManager from '@/components/AnalysisManager';
 import { getAnalyses, getAnalysisById } from './lib/api';
 import { transformSmartReportToDashboard } from './lib/transformData';
-import { saveWeeklyReport, saveDailyReport, getAllPoliticians } from './lib/storage';
+import { saveWeeklyReport, saveDailyReport, getAllPoliticians, setCurrentPolitician } from './lib/storage';
 
 // URL de la API (Netlify / local)
 
@@ -26,6 +26,7 @@ function App() {
   const [analyses, setAnalyses] = useState([]); // List of available analyses
   const [urlCount, setUrlCount] = useState(0);
   const [analyzedUrls, setAnalyzedUrls] = useState([]); // URLs del último análisis
+  const [reportsRefreshKey, setReportsRefreshKey] = useState(0); // Para forzar recarga de ReportsLayout
   const { toast } = useToast();
   const resultsRef = useRef(null);
 
@@ -226,13 +227,16 @@ function App() {
   };
 
   const handleSelectFromManager = async (analysis) => {
-    // Si es análisis de API
-    if (analysis.id) {
+    // Si es análisis de API (tiene campo 'politician')
+    if (analysis.politician && analysis.id) {
       await handleAnalysisSelection(analysis.id);
       setView('results');
     } else {
-      // Si es análisis local (de localStorage)
-      // Ir a ReportsLayout
+      // Si es análisis local (de localStorage) - tiene formato de politician directamente
+      // Establecer como político actual antes de cambiar la vista
+      setCurrentPolitician(analysis.id);
+      // Incrementar refreshKey para forzar recarga del ReportsLayout
+      setReportsRefreshKey(prev => prev + 1);
       setView('reports');
     }
   };
@@ -328,6 +332,7 @@ function App() {
                   onDownloadPdf={handleDownloadPdf}
                   formatDate={formatDate}
                   getBadgeVariant={getBadgeVariant}
+                  refreshKey={reportsRefreshKey}
                 />
               </motion.div>
             ) : view === 'form' ? (

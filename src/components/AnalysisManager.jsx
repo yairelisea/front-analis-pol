@@ -240,7 +240,7 @@ const AnalysisManager = ({ onBack, onSelectAnalysis }) => {
                       key={politician.id}
                       className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                     >
-                      <div className="flex-1">
+                      <div className="flex-1 cursor-pointer" onClick={() => onSelectAnalysis && onSelectAnalysis(politician)}>
                         <h3 className="font-semibold text-gray-900">
                           {politician.name}
                         </h3>
