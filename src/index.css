@@ -74,10 +74,10 @@ body {
     display: none !important;
   }
 
-  /* Configuración de página A4 */
+  /* Configuración de página Carta (Letter) */
   @page {
-    size: A4;
-    margin: 1cm 1.5cm;
+    size: letter;
+    margin: 1.5cm 1.2cm;
   }
 
   body {
@@ -109,7 +109,7 @@ body {
   [class*="Card"] {
     page-break-inside: avoid;
     break-inside: avoid;
-    margin-bottom: 0.5rem !important;
+    margin-bottom: 0.4rem !important;
   }
 
   /* Asegurar que las tablas se vean bien */
@@ -126,10 +126,10 @@ body {
   /* Ajustar grids para impresión */
   .grid {
     display: grid;
-    gap: 0.5rem !important;
+    gap: 0.4rem !important;
   }
 
-  /* Ajustar columnas en grids */
+  /* Ajustar columnas en grids - mantener más información visible */
   .grid-cols-4 {
     grid-template-columns: repeat(2, 1fr) !important;
   }
@@ -144,15 +144,15 @@ body {
     grid-column: span 6 !important;
   }
 
-  /* Ajustar el tamaño de los gráficos */
+  /* Ajustar el tamaño de los gráficos - mantener legibles */
   .recharts-wrapper {
-    max-height: 200px !important;
+    max-height: 250px !important;
     width: 100% !important;
   }
 
-  /* Reducir tamaño de gráficos grandes */
+  /* Tamaño de gráficos grandes - considerable y legible */
   .recharts-surface {
-    max-height: 200px !important;
+    max-height: 250px !important;
   }
 
   /* Mantener badges visibles con colores */
