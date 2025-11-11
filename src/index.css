@@ -66,11 +66,7 @@ body {
 /* Estilos de impresión */
 @media print {
   /* Ocultar elementos no necesarios */
-  .no-print,
-  button:not(.print-only),
-  nav,
-  aside,
-  .sidebar {
+  .no-print {
     display: none !important;
   }
 
@@ -82,6 +78,16 @@ body {
 
   body {
     background: white !important;
+    color: black !important;
+  }
+
+  /* Forzar visibilidad del contenido */
+  #root,
+  .printable-content,
+  main {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 
   /* Eliminar sombras y animaciones */
@@ -97,11 +103,33 @@ body {
   [class*="Card"] {
     page-break-inside: avoid;
     break-inside: avoid;
+    width: 100% !important;
+    margin-bottom: 0.5rem !important;
   }
 
   /* Títulos */
   h1, h2, h3, h4, h5, h6 {
     page-break-after: avoid;
+    color: inherit !important;
+  }
+
+  h1 {
+    font-size: 20pt !important;
+  }
+
+  h2 {
+    font-size: 16pt !important;
+  }
+
+  h3 {
+    font-size: 14pt !important;
+  }
+
+  /* Texto legible */
+  p, span, div, li {
+    font-size: 10pt !important;
+    line-height: 1.4 !important;
+    color: inherit !important;
   }
 
   /* Tablas */
@@ -113,14 +141,22 @@ body {
   /* Enlaces clickeables */
   a {
     text-decoration: underline;
+    color: blue !important;
   }
 
-  /* Evitar quiebres de página no deseados */
-  .motion\.div,
-  motion-div,
-  [class*="motion"] {
-    page-break-inside: avoid;
-    break-inside: avoid;
+  /* Asegurar que las gráficas estén visibles */
+  .recharts-wrapper,
+  .recharts-surface {
+    display: block !important;
+    visibility: visible !important;
+    max-height: 250px !important;
+    margin: 0.5rem auto !important;
+  }
+
+  /* Grids - mantener estructura */
+  .grid {
+    display: grid !important;
+    gap: 0.5rem !important;
   }
 
   /* Forzar que se impriman los colores */
@@ -129,36 +165,16 @@ body {
     print-color-adjust: exact !important;
   }
 
-  /* Asegurar que las gráficas estén bien alineadas */
-  .recharts-wrapper {
-    display: block !important;
-    margin: 0 auto !important;
-    max-height: 220px !important;
+  /* Reducir padding excesivo */
+  .p-8, .p-6 {
+    padding: 1rem !important;
   }
 
-  /* Grids de gráficas - mantener alineación */
-  .grid {
-    display: grid !important;
-    gap: 0.75rem !important;
-  }
-
-  /* Asegurar que las cards mantengan su ancho */
-  .card,
-  [class*="Card"] {
-    width: 100% !important;
-    margin-bottom: 0.75rem !important;
-  }
-
-  /* Optimizar padding para impresión */
-  .p-8, .p-6, .p-5 {
+  .p-4, .p-5 {
     padding: 0.75rem !important;
   }
 
-  .p-4 {
-    padding: 0.5rem !important;
-  }
-
-  /* Reducir espaciado entre elementos */
+  /* Espaciado entre elementos */
   .space-y-8 > * + *,
   .space-y-6 > * + * {
     margin-top: 0.75rem !important;
@@ -169,51 +185,35 @@ body {
     margin-top: 0.5rem !important;
   }
 
-  /* Optimizar tamaños de fuente */
-  h1 {
-    font-size: 22pt !important;
-    line-height: 1.2 !important;
-    margin-bottom: 0.5rem !important;
-  }
-
-  h2 {
-    font-size: 16pt !important;
-    line-height: 1.2 !important;
-    margin-bottom: 0.4rem !important;
-  }
-
-  h3 {
-    font-size: 13pt !important;
-    line-height: 1.2 !important;
-    margin-bottom: 0.3rem !important;
-  }
-
-  p, span, div, li {
-    font-size: 10pt !important;
-    line-height: 1.3 !important;
-  }
-
-  /* Reducir tamaño de íconos */
+  /* Iconos */
   svg {
-    width: 14px !important;
-    height: 14px !important;
+    width: 12px !important;
+    height: 12px !important;
   }
 
-  /* Headers de cards más compactos */
+  /* Headers y contenido de cards */
   [class*="CardHeader"] {
     padding: 0.75rem !important;
-    padding-bottom: 0.5rem !important;
   }
 
   [class*="CardContent"] {
     padding: 0.75rem !important;
   }
 
-  /* Optimizar max-width para aprovechar el espacio */
+  /* Optimizar ancho para impresión */
   .max-w-\[1800px\],
-  .max-w-7xl {
+  .max-w-7xl,
+  .max-w-\[1400px\] {
     max-width: 100% !important;
     padding-left: 0.5rem !important;
     padding-right: 0.5rem !important;
+  }
+
+  /* Asegurar que motion divs sean visibles */
+  [class*="motion"],
+  .motion-div {
+    display: block !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
