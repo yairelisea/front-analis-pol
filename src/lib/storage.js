@@ -201,4 +201,44 @@ export function deletePolitician(politicianId) {
  */
 export function clearAllData() {
   localStorage.removeItem(STORAGE_KEY);
+  console.log('🗑️ Todos los datos de localStorage han sido eliminados');
+}
+
+/**
+ * Migrar reportes antiguos a nueva estructura
+ */
+export function migrateOldReports() {
+  const data = getStorageData();
+  let migrated = false;
+
+  data.politicians = data.politicians.map(politician => {
+    if (politician.weeklyReport) {
+      // Verificar si el reporte tiene la estructura antigua
+      const report = politician.weeklyReport;
+
+      // Si weeklyTrend tiene 'dia' en lugar de 'day', necesita migración
+      if (report.weeklyTrend && report.weeklyTrend.length > 0 && 'dia' in report.weeklyTrend[0]) {
+        console.log(`🔄 Migrando reporte de ${politician.name}...`);
+
+        // Convertir weeklyTrend
+        report.weeklyTrend = report.weeklyTrend.map(d => ({
+          day: d.dia,
+          mentions: d.menciones,
+          sentiment: d.sentimiento
+        }));
+
+        migrated = true;
+      }
+    }
+    return politician;
+  });
+
+  if (migrated) {
+    setStorageData(data);
+    console.log('✅ Migración completada');
+  } else {
+    console.log('ℹ️ No se encontraron reportes que necesiten migración');
+  }
+
+  return migrated;
 }

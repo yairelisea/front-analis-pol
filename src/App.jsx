@@ -12,7 +12,7 @@ import ReportsLayout from '@/components/ReportsLayout';
 import AnalysisManager from '@/components/AnalysisManager';
 import { getAnalyses, getAnalysisById } from './lib/api';
 import { transformSmartReportToDashboard } from './lib/transformData';
-import { saveWeeklyReport, saveDailyReport, getAllPoliticians, setCurrentPolitician } from './lib/storage';
+import { saveWeeklyReport, saveDailyReport, getAllPoliticians, setCurrentPolitician, migrateOldReports } from './lib/storage';
 
 // URL de la API (Netlify / local)
 
@@ -55,7 +55,10 @@ function App() {
   // Cargar análisis desde la API o localStorage al montar
   useEffect(() => {
     const loadInitialData = async () => {
-      // Primero verificar si hay datos en localStorage
+      // Primero migrar reportes antiguos si existen
+      migrateOldReports();
+
+      // Luego verificar si hay datos en localStorage
       const politicians = getAllPoliticians();
 
       // Luego intentar cargar desde la API
