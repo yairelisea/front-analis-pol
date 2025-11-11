@@ -14,7 +14,7 @@ import {
   MessageSquare, Users, Target, FileText, Download,
   ArrowUpRight, Clock, Star, Zap, BarChart3,
   ExternalLink, Calendar, Smile, Frown, Tag, Sparkles,
-  ThumbsUp, ThumbsDown
+  ThumbsUp, ThumbsDown, Printer
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { API_BASE } from '../config';
@@ -464,6 +464,10 @@ const WeeklyReport = ({
     console.log('Navegando a:', path);
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   if (loading) {
     console.log('⏳ Showing loading state');
     return (
@@ -513,13 +517,17 @@ const WeeklyReport = ({
                 <h1 className="text-5xl font-bold mb-3">{dashboardData.actor}</h1>
                 <p className="text-slate-300 text-lg">{dashboardData.periodo}</p>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-3 no-print">
                 <Button variant="outline" size="lg" className="bg-white/10 border-white/30 text-white hover:bg-white/20" onClick={onNewAnalysis}>
                   Nuevo Análisis
                 </Button>
                 <Button variant="outline" size="lg" className="bg-white/10 border-white/30 text-white hover:bg-white/20" onClick={handleRefresh} disabled={refreshing}>
                   <RefreshCw className={`h-5 w-5 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
                   Actualizar
+                </Button>
+                <Button variant="outline" size="lg" className="bg-white/10 border-white/30 text-white hover:bg-white/20" onClick={handlePrint}>
+                  <Printer className="h-5 w-5 mr-2" />
+                  Imprimir
                 </Button>
                 <Button size="lg" className="bg-brand-green hover:bg-emerald-600 text-white shadow-lg" onClick={() => handleNavigate('/user/campaigns/new')}>
                   <PlusCircle className="h-5 w-5 mr-2" />

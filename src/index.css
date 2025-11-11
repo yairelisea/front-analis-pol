@@ -62,3 +62,132 @@ body {
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
   animation: shimmer 2s infinite;
 }
+
+/* Estilos de impresión */
+@media print {
+  /* Ocultar elementos no necesarios */
+  .no-print,
+  button:not(.print-only),
+  nav,
+  aside,
+  .sidebar {
+    display: none !important;
+  }
+
+  /* Configuración de página */
+  @page {
+    size: auto;
+    margin: 1.5cm;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Forzar fondos blancos y texto negro */
+  * {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Mantener colores en gráficos y badges importantes */
+  .recharts-surface,
+  .recharts-layer,
+  [class*="bg-green"],
+  [class*="bg-red"],
+  [class*="bg-yellow"],
+  [class*="bg-blue"],
+  [class*="bg-emerald"],
+  [class*="text-green"],
+  [class*="text-red"],
+  [class*="text-yellow"],
+  [class*="text-blue"] {
+    color: inherit !important;
+    background: inherit !important;
+  }
+
+  /* Asegurar que los bordes sean visibles */
+  .border,
+  [class*="border-"] {
+    border-color: #ccc !important;
+  }
+
+  /* Títulos */
+  h1, h2, h3, h4, h5, h6 {
+    color: black !important;
+    page-break-after: avoid;
+  }
+
+  /* Evitar que las tarjetas se partan */
+  .card,
+  [class*="Card"] {
+    page-break-inside: avoid;
+    border: 1px solid #ddd !important;
+    margin-bottom: 1rem;
+  }
+
+  /* Asegurar que las tablas se vean bien */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  table, th, td {
+    border: 1px solid #ddd !important;
+  }
+
+  /* Espaciado para mejor legibilidad */
+  .grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  /* Ajustar el tamaño de los gráficos */
+  .recharts-wrapper {
+    max-height: 300px !important;
+  }
+
+  /* Mantener badges visibles */
+  .badge,
+  [class*="Badge"] {
+    border: 1px solid #333 !important;
+    padding: 2px 8px;
+    display: inline-block;
+  }
+
+  /* Enlaces */
+  a {
+    text-decoration: underline;
+    color: #0066cc !important;
+  }
+
+  /* Ocultar animaciones */
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* Maximizar el uso del espacio */
+  .max-w-\[1800px\],
+  .max-w-7xl,
+  .max-w-6xl {
+    max-width: 100% !important;
+  }
+
+  /* Header del reporte */
+  .report-header {
+    background: #f8f9fa !important;
+    border: 2px solid #333 !important;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Asegurar que el texto sea legible */
+  p, span, div {
+    font-size: 11pt;
+    line-height: 1.4;
+  }
+}

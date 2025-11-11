@@ -8,7 +8,7 @@ import { useToast } from '@/components/ui/use-toast';
 import {
   Newspaper, Calendar, ArrowLeft, Download, Share2, BarChart3,
   TrendingUp, TrendingDown, Minus, Eye, MessageCircle, Heart,
-  Sparkles, Tag, ExternalLink, Smile, Frown, ThumbsUp, ThumbsDown, AlertCircle
+  Sparkles, Tag, ExternalLink, Smile, Frown, ThumbsUp, ThumbsDown, AlertCircle, Printer
 } from 'lucide-react';
 import { API_BASE } from '../config';
 import { transformDailySummaryToReport } from '../lib/transformDailyReport';
@@ -283,6 +283,10 @@ const DailyReport = ({ actorName, onBack }) => {
     toast({ title: 'Función no implementada', description: 'La opción de compartir aún no está disponible.' });
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   // Estados de carga y error
   if (loading) {
     return (
@@ -370,10 +374,10 @@ const DailyReport = ({ actorName, onBack }) => {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
-                      className="text-white hover:bg-white/20 -ml-2"
+                      className="text-white hover:bg-white/20 -ml-2 no-print"
                       onClick={onBack}
                     >
                       <ArrowLeft className="h-5 w-5" />
@@ -391,9 +395,9 @@ const DailyReport = ({ actorName, onBack }) => {
                     <p className="text-base">{fechaActual}</p>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
+                <div className="flex gap-2 no-print">
+                  <Button
+                    variant="outline"
                     size="sm"
                     className="bg-white/20 border-white/40 text-white hover:bg-white/30 backdrop-blur-sm"
                     onClick={handleShare}
@@ -401,7 +405,16 @@ const DailyReport = ({ actorName, onBack }) => {
                     <Share2 className="h-4 w-4 mr-2" />
                     Compartir
                   </Button>
-                  <Button 
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-white/20 border-white/40 text-white hover:bg-white/30 backdrop-blur-sm"
+                    onClick={handlePrint}
+                  >
+                    <Printer className="h-4 w-4 mr-2" />
+                    Imprimir
+                  </Button>
+                  <Button
                     size="sm"
                     className="bg-white text-emerald-600 hover:bg-gray-50 shadow-lg font-semibold"
                     onClick={handleDownload}
