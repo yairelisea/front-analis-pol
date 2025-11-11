@@ -860,7 +860,7 @@ const WeeklyReport = ({
           </Card>
 
           {/* Actividad Reciente - 4 cols */}
-          <Card className="lg:col-span-4 shadow-lg">
+          <Card className="lg:col-span-4 shadow-lg hide-on-print">
             <CardHeader>
               <CardTitle>Actividad Reciente</CardTitle>
               <CardDescription>Últimas actualizaciones del sistema</CardDescription>
