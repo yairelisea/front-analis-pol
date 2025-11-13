@@ -494,7 +494,7 @@ const WeeklyReport = ({
   console.log('📋 Dashboard data keys:', Object.keys(dashboardData));
 
   return (
-    <div className="max-w-[1800px] mx-auto space-y-4 md:space-y-6 lg:space-y-8 px-4 md:px-0">
+    <div className="max-w-[1800px] mx-auto space-y-4 md:space-y-6 lg:space-y-8 px-4 md:px-0 print:!max-w-none print:!mx-0 print:!space-y-4">
       
       {/* Header Executive */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
