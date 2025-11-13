@@ -8,7 +8,7 @@
   /* Configuración de página - Tamaño Carta (8.5" × 11") optimizado */
   @page {
     size: letter;
-    margin: 1.5cm 1.2cm;
+    margin: 1.2cm 1cm;
   }
 
   html,
@@ -30,6 +30,26 @@
     opacity: 1 !important;
     background: white !important;
     background-color: white !important;
+  }
+  
+  /* ELIMINAR fondos grises de contenedores wrapper */
+  [class*="bg-gray"],
+  .bg-gray-50,
+  .bg-gray-100,
+  [class*="from-gray"],
+  [class*="via-white"],
+  [class*="to-gray"] {
+    background: white !important;
+    background-color: white !important;
+  }
+  
+  /* Contenedores principales sin fondo gris */
+  .min-h-screen,
+  [class*="min-h-screen"],
+  [class*="bg-gradient-to-br"] {
+    background: white !important;
+    background-color: white !important;
+    padding: 0 !important;
   }
 
   /* Asegurar que todos los contenedores tengan fondo blanco por defecto */
@@ -62,7 +82,7 @@
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     width: 100% !important;
-    margin-bottom: 0.4rem !important;
+    margin-bottom: 0.3rem !important;
     overflow: visible !important;
   }
   
@@ -96,14 +116,14 @@
     break-inside: avoid !important;
   }
   
-  /* Headers y contenido de cards - más compactos */
+  /* Headers y contenido de cards - muy compactos */
   [class*="CardHeader"] {
-    padding: 0.5rem !important;
-    padding-bottom: 0.35rem !important;
+    padding: 0.4rem !important;
+    padding-bottom: 0.3rem !important;
   }
 
   [class*="CardContent"] {
-    padding: 0.5rem !important;
+    padding: 0.4rem !important;
   }
 
   /* Mantener TODOS los backgrounds y gradientes */
@@ -437,14 +457,14 @@
   .grid-cols-3,
   .grid-cols-2 {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 0.6rem !important;
+    gap: 0.4rem !important;
   }
 
   /* Grids de 12 columnas */
   .lg\:grid-cols-12 {
     display: grid !important;
     grid-template-columns: repeat(12, 1fr) !important;
-    gap: 0.6rem !important;
+    gap: 0.4rem !important;
   }
 
   /* Cuando se ocultan elementos, expandir los visibles */
@@ -472,38 +492,46 @@
     grid-column: span 3 !important;
   }
 
-  /* Padding balanceado para carta - reducido para evitar cortes */
+  /* Padding balanceado para carta - MUY reducido para métricas */
   .p-8 {
-    padding: 0.6rem !important;
+    padding: 0.4rem !important;
   }
 
   .p-6 {
-    padding: 0.5rem !important;
+    padding: 0.4rem !important;
   }
 
   .p-4, .p-5 {
-    padding: 0.45rem !important;
-  }
-
-  .p-3 {
     padding: 0.35rem !important;
   }
 
-  /* Espaciado optimizado para carta - reducido */
+  .p-3 {
+    padding: 0.3rem !important;
+  }
+  
+  .p-2 {
+    padding: 0.25rem !important;
+  }
+
+  /* Espaciado optimizado para carta - MUY reducido */
   .space-y-8 > * + * {
-    margin-top: 0.5rem !important;
-  }
-
-  .space-y-6 > * + * {
-    margin-top: 0.45rem !important;
-  }
-
-  .space-y-4 > * + * {
     margin-top: 0.4rem !important;
   }
 
-  .space-y-3 > * + * {
+  .space-y-6 > * + * {
+    margin-top: 0.35rem !important;
+  }
+
+  .space-y-4 > * + * {
     margin-top: 0.3rem !important;
+  }
+
+  .space-y-3 > * + * {
+    margin-top: 0.25rem !important;
+  }
+  
+  .space-y-2 > * + * {
+    margin-top: 0.2rem !important;
   }
 
   /* Iconos - tamaño visible pero no excesivo */
@@ -512,13 +540,16 @@
     height: 14px !important;
   }
 
-  /* Optimizar ancho para carta */
+  /* Optimizar ancho para carta - SIN padding para maximizar espacio */
   .max-w-\[1800px\],
   .max-w-7xl,
   .max-w-\[1400px\] {
     max-width: 100% !important;
-    padding-left: 0.5rem !important;
-    padding-right: 0.5rem !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin: 0 !important;
   }
 
   /* Motion divs */
@@ -529,17 +560,21 @@
     transform: none !important;
   }
 
-  /* Gaps - reducidos para evitar cortes */
+  /* Gaps - muy reducidos para máxima compactación */
   .gap-6 {
-    gap: 0.5rem !important;
-  }
-
-  .gap-4 {
     gap: 0.4rem !important;
   }
 
-  .gap-3 {
+  .gap-4 {
     gap: 0.3rem !important;
+  }
+
+  .gap-3 {
+    gap: 0.25rem !important;
+  }
+  
+  .gap-2 {
+    gap: 0.2rem !important;
   }
 
   /* Badges */
