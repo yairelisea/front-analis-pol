@@ -315,7 +315,7 @@ function App() {
 
       <div className="min-h-screen p-4 md:p-8">
         <div className="max-w-6xl mx-auto space-y-8">
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-4">
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-4 no-print">
             <h1 className="text-4xl md:text-6xl font-bold gradient-text">Percepción Digital</h1>
             <p className="text-xl text-gray-700">Analizador simple</p>
           </motion.div>
