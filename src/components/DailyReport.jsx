@@ -362,7 +362,7 @@ const DailyReport = ({ actorName, onBack }) => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 p-4 md:p-8 print:!bg-white print:!p-0 print:!min-h-0">
+    <div className="min-h-screen p-4 md:p-8" style={{ background: 'white' }}>
       <div className="max-w-[1400px] mx-auto space-y-4 md:space-y-6 print:!max-w-none print:!mx-0">
         
         {/* Header */}
