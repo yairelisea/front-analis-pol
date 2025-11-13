@@ -5,10 +5,10 @@
     display: none !important;
   }
 
-  /* Configuración de página - Tamaño Carta (8.5" × 11") optimizado */
+  /* Configuración de página */
   @page {
-    size: letter;
-    margin: 1.2cm 1cm;
+    size: auto;
+    margin: 0.5cm;
   }
 
   html,
@@ -17,8 +17,8 @@
     background-color: white !important;
     margin: 0 !important;
     padding: 0 !important;
-    width: 100%;
-    height: 100%;
+    width: 100% !important;
+    height: auto !important;
   }
 
   /* Forzar visibilidad del contenido y fondo blanco */
@@ -30,53 +30,52 @@
     opacity: 1 !important;
     background: white !important;
     background-color: white !important;
-  }
-  
-  /* ELIMINAR fondos grises de contenedores wrapper - MÁS ESPECÍFICO */
-  body,
-  html body,
-  body *,
-  [class*="bg-gray"],
-  .bg-gray-50,
-  .bg-gray-100,
-  .bg-gray-200,
-  [class*="from-gray"],
-  [class*="via-white"],
-  [class*="to-gray"],
-  [class*="via-gray"] {
-    background: white !important;
-    background-color: white !important;
-    background-image: none !important;
-  }
-  
-  /* Contenedores principales sin fondo gris - FORZADO */
-  .min-h-screen,
-  [class*="min-h-screen"],
-  [class*="bg-gradient-to-br"],
-  [class*="bg-gradient-to-r"],
-  [class*="bg-gradient-to-l"],
-  [class*="bg-gradient-to-t"],
-  [class*="bg-gradient-to-b"] {
-    background: white !important;
-    background-color: white !important;
-    background-image: none !important;
     padding: 0 !important;
-  }
-  
-  /* Sobrescribir específicamente los gradientes grises */
-  .from-gray-50,
-  .from-gray-100,
-  .via-white,
-  .to-gray-50,
-  .to-gray-100 {
-    background: white !important;
-    background-color: white !important;
-    background-image: none !important;
+    margin: 0 !important;
   }
 
-  /* Asegurar que todos los contenedores tengan fondo blanco por defecto */
-  div:not([class*="bg-"]):not([class*="from-"]):not([class*="to-"]) {
-    background: transparent !important;
+  /* ELIMINAR TODOS los contenedores wrapper - hacer invisibles pero mantener contenido */
+  .min-h-screen,
+  [class*="min-h-screen"],
+  [class*="bg-gradient"],
+  [class*="from-gray"],
+  [class*="via-white"],
+  [class*="to-gray"] {
+    background: none !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Contenedores max-w sin restricciones */
+  [class*="max-w-"],
+  .max-w-7xl,
+  .max-w-\[1400px\],
+  .max-w-\[1800px\] {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Espaciados de contenedores principales a cero */
+  body > div,
+  #root > div,
+  [class*="space-y-"] {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Solo el contenido interno debe tener espaciado */
+  [class*="space-y-"] > * {
+    margin-top: 0.4rem !important;
+  }
+
+  [class*="space-y-"] > *:first-child {
+    margin-top: 0 !important;
   }
 
   /* Eliminar solo sombras y animaciones */
