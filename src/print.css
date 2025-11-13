@@ -1,749 +1,200 @@
 @media print {
-  /* OCULTAR el header principal que solo tiene título */
-  body > div > div > div:first-child > div:first-child:only-child {
-    display: none !important;
-  }
-  
-  /* OCULTAR headers que solo tienen texto centrado */
-  .text-center:has(h1):has(p) {
-    display: none !important;
-  }
-  
-  /* SOLUCIÓN NUCLEAR SELECTIVA: Forzar fondo blanco solo en contenedores wrapper */
-  body,
-  body > div,
-  body > div > div:first-child,
-  #root,
-  #root > div:first-child,
-  [class*="min-h-screen"],
-  [class*="bg-gradient-to-br"][class*="from-gray"] {
-    background: white !important;
-    background-color: white !important;
-    background-image: none !important;
-    padding: 0 !important;
-  }
-  
-  /* PRESERVAR colores en elementos importantes */
-  [class*="bg-gradient-to-r"][class*="from-slate"],
-  [class*="bg-gradient-to-r"][class*="from-emerald"],
-  [class*="bg-gradient-to-br"][class*="from-emerald"],
-  [class*="bg-gradient-to-br"][class*="from-blue"],
-  [class*="bg-gradient-to-br"][class*="from-purple"],
-  [class*="bg-gradient-to-br"][class*="from-orange"],
-  .bg-emerald-500,
-  .bg-emerald-600,
-  .bg-blue-500,
-  .bg-blue-600,
-  .bg-purple-500,
-  .bg-purple-600,
-  .bg-orange-500,
-  .bg-orange-600 {
-    background: revert !important;
-    background-color: revert !important;
-    background-image: revert !important;
-  }
-  
-  /* Ocultar elementos no necesarios */
+  /* ============================================
+     PASO 1: OCULTAR ELEMENTOS NO NECESARIOS
+     ============================================ */
   .no-print,
   .hide-on-print {
     display: none !important;
   }
 
-  /* Configuración de página */
+  /* ============================================
+     PASO 2: CONFIGURACIÓN DE PÁGINA
+     ============================================ */
   @page {
     size: auto;
     margin: 0.5cm;
   }
 
-  html,
-  body {
-    background: white !important;
-    background-color: white !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    height: auto !important;
-  }
-
-  /* Forzar visibilidad del contenido y fondo blanco */
-  #root,
-  .printable-content,
-  main {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    background: white !important;
-    background-color: white !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  /* ELIMINAR TODOS los contenedores wrapper - hacer invisibles pero mantener contenido */
-  .min-h-screen,
-  [class*="min-h-screen"] {
-    background: white !important;
-    background-color: white !important;
-    background-image: none !important;
-    min-height: 0 !important;
-    height: auto !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  /* ANULAR específicamente gradientes grises SOLO en contenedores wrapper (no en Cards) */
-  div[class*="from-gray"]:not([class*="Card"]),
-  div[class*="via-white"]:not([class*="Card"]),
-  div[class*="to-gray"]:not([class*="Card"]),
-  div.bg-gradient-to-br:not([class*="Card"]),
-  div[class*="bg-gradient-to-br"]:not([class*="Card"]) {
-    background: white !important;
-    background-color: white !important;
-    background-image: none !important;
-  }
-
-  /* Contenedores max-w sin restricciones */
-  [class*="max-w-"],
-  .max-w-7xl,
-  .max-w-\[1400px\],
-  .max-w-\[1800px\] {
-    max-width: 100% !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  /* Espaciados de contenedores principales a cero */
-  body > div,
-  #root > div,
-  [class*="space-y-"] {
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  /* Solo el contenido interno debe tener espaciado */
-  [class*="space-y-"] > * {
-    margin-top: 0.4rem !important;
-  }
-
-  [class*="space-y-"] > *:first-child {
-    margin-top: 0 !important;
-  }
-
-  /* RESETEAR solo contenedores wrapper sin clases específicas */
-  div:not([class*="bg-"]):not([class*="from-"]):not([class*="to-"]):not([class*="Card"]):not([class*="recharts"]) {
-    background: white !important;
-    background-color: white !important;
-    background-image: none !important;
-  }
-
-  /* Eliminar solo sombras y animaciones */
+  /* ============================================
+     PASO 3: RESETEAR TODO A BLANCO
+     ============================================ */
   * {
     box-shadow: none !important;
     animation: none !important;
     transition: none !important;
   }
 
-  /* FORZAR impresión de colores en TODOS los elementos */
+  html,
+  body,
+  #root,
+  #root > *,
+  [class*="min-h-screen"] {
+    background: white !important;
+    background-color: white !important;
+    background-image: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  /* ============================================
+     PASO 4: FORZAR COLORES EN ELEMENTOS ESPECÍFICOS
+     ============================================ */
   *,
   *::before,
-  *::after,
-  html,
-  body {
+  *::after {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
-    filter: none !important;
   }
 
-  /* Evitar que las tarjetas se partan */
-  .card,
-  [class*="Card"] {
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-    width: 100% !important;
-    margin-bottom: 0.3rem !important;
-    overflow: visible !important;
-  }
-  
-  /* Evitar cortes en secciones críticas */
-  [class*="space-y"] > div,
-  [class*="grid"] > div,
-  section,
-  article {
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-  
-  /* Secciones específicas del reporte */
-  [class*="CardContent"],
-  [class*="rounded-lg"],
-  [class*="border"] {
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-  
-  /* Headers de sección no deben quedar solos al final */
-  h1, h2, h3, h4, h5, h6 {
-    page-break-after: avoid !important;
-    page-break-inside: avoid !important;
-    margin-bottom: 0.5rem !important;
-  }
-  
-  /* Mantener juntos grupos de elementos */
-  ul, ol {
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-  
-  /* Headers y contenido de cards - muy compactos */
-  [class*="CardHeader"] {
-    padding: 0.4rem !important;
-    padding-bottom: 0.3rem !important;
-  }
-
-  [class*="CardContent"] {
-    padding: 0.4rem !important;
-  }
-
-  /* Mantener TODOS los backgrounds y gradientes */
-  [class*="bg-"],
-  [class*="from-"],
-  [class*="to-"],
-  [class*="via-"] {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    background: inherit !important;
-  }
-
-  /* Header con gradiente oscuro - mantener exacto */
-  .bg-gradient-to-r.from-slate-900,
+  /* Restaurar gradientes específicos de Cards */
   [class*="from-slate-900"] {
     background: linear-gradient(to right, rgb(15, 23, 42), rgb(30, 41, 59), rgb(15, 23, 42)) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
 
-  /* Gradiente verde esmeralda */
-  .from-emerald-600.to-teal-500,
-  [class*="from-emerald-600"] {
-    background: linear-gradient(to right, rgb(5, 150, 105), rgb(20, 184, 166), rgb(5, 150, 105)) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+  [class*="from-emerald-600"][class*="to-teal"] {
+    background: linear-gradient(to right, rgb(5, 150, 105), rgb(16, 185, 129), rgb(20, 184, 166)) !important;
   }
 
-  /* Gradientes de HeroKPI - preservar exactos */
-  .from-emerald-500.to-emerald-600,
-  [class*="from-emerald-500"] {
+  [class*="from-emerald-500"][class*="to-emerald-600"] {
     background: linear-gradient(to bottom right, rgb(16, 185, 129), rgb(5, 150, 105)) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
 
-  .from-blue-500.to-blue-600,
-  [class*="from-blue-500"] {
+  [class*="from-blue-500"][class*="to-blue-600"] {
     background: linear-gradient(to bottom right, rgb(59, 130, 246), rgb(37, 99, 235)) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
 
-  .from-purple-500.to-purple-600,
-  [class*="from-purple-500"] {
+  [class*="from-purple-500"][class*="to-purple-600"] {
     background: linear-gradient(to bottom right, rgb(168, 85, 247), rgb(147, 51, 234)) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
 
-  .from-orange-500.to-orange-600,
-  [class*="from-orange-500"] {
+  [class*="from-orange-500"][class*="to-orange-600"] {
     background: linear-gradient(to bottom right, rgb(249, 115, 22), rgb(234, 88, 12)) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
 
-  /* Colores de texto - preservar exactos */
-  .text-white,
-  [class*="text-white"] {
-    color: rgb(255, 255, 255) !important;
+  /* Colores sólidos */
+  .bg-white { background-color: rgb(255, 255, 255) !important; }
+  .bg-emerald-50 { background-color: rgb(236, 253, 245) !important; }
+  .bg-blue-50 { background-color: rgb(239, 246, 255) !important; }
+  .bg-purple-50 { background-color: rgb(250, 245, 255) !important; }
+  .bg-orange-50 { background-color: rgb(255, 247, 237) !important; }
+  .bg-green-50 { background-color: rgb(240, 253, 244) !important; }
+  .bg-yellow-50 { background-color: rgb(254, 252, 232) !important; }
+  .bg-red-50 { background-color: rgb(254, 242, 242) !important; }
+  .bg-gray-50 { background-color: rgb(249, 250, 251) !important; }
+
+  /* ============================================
+     PASO 5: TAMAÑOS Y ESPACIADO
+     ============================================ */
+  [class*="max-w-"] {
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 
-  .text-slate-200 {
-    color: rgb(226, 232, 240) !important;
+  /* Espaciado entre elementos */
+  [class*="space-y-"] > * + * {
+    margin-top: 0.4rem !important;
   }
 
-  .text-slate-300 {
-    color: rgb(203, 213, 225) !important;
-  }
-
-  .text-emerald-300 {
-    color: rgb(110, 231, 183) !important;
-  }
-
-  .text-emerald-600 {
-    color: rgb(5, 150, 105) !important;
-  }
-
-  .text-green-600 {
-    color: rgb(22, 163, 74) !important;
-  }
-
-  .text-green-700 {
-    color: rgb(21, 128, 61) !important;
-  }
-
-  .text-blue-600 {
-    color: rgb(37, 99, 235) !important;
-  }
-
-  .text-blue-700 {
-    color: rgb(29, 78, 216) !important;
-  }
-
-  .text-purple-600 {
-    color: rgb(147, 51, 234) !important;
-  }
-
-  .text-orange-700 {
-    color: rgb(194, 65, 12) !important;
-  }
-
-  .text-red-600 {
-    color: rgb(220, 38, 38) !important;
-  }
-
-  .text-red-700 {
-    color: rgb(185, 28, 28) !important;
-  }
-
-  .text-yellow-600 {
-    color: rgb(202, 138, 4) !important;
-  }
-
-  .text-yellow-700 {
-    color: rgb(161, 98, 7) !important;
-  }
-
-  .text-gray-500 {
-    color: rgb(107, 114, 128) !important;
-  }
-
-  .text-gray-700 {
-    color: rgb(55, 65, 81) !important;
-  }
-
-  .text-gray-900 {
-    color: rgb(17, 24, 39) !important;
-  }
-
-  /* Backgrounds ligeros - preservar exactos */
-  .bg-white {
-    background-color: rgb(255, 255, 255) !important;
-  }
-
-  .bg-green-50 {
-    background-color: rgb(240, 253, 244) !important;
-  }
-
-  .bg-emerald-50 {
-    background-color: rgb(236, 253, 245) !important;
-  }
-
-  .bg-blue-50 {
-    background-color: rgb(239, 246, 255) !important;
-  }
-
-  .bg-purple-50 {
-    background-color: rgb(250, 245, 255) !important;
-  }
-
-  .bg-orange-50 {
-    background-color: rgb(255, 247, 237) !important;
-  }
-
-  .bg-yellow-50 {
-    background-color: rgb(254, 252, 232) !important;
-  }
-
-  .bg-red-50 {
-    background-color: rgb(254, 242, 242) !important;
-  }
-
-  .bg-gray-50 {
-    background-color: rgb(249, 250, 251) !important;
-  }
-
-  /* Backgrounds sólidos - preservar exactos */
-  .bg-emerald-500 {
-    background-color: rgb(16, 185, 129) !important;
-  }
-
-  .bg-emerald-600 {
-    background-color: rgb(5, 150, 105) !important;
-  }
-
-  .bg-blue-500 {
-    background-color: rgb(59, 130, 246) !important;
-  }
-
-  .bg-blue-600 {
-    background-color: rgb(37, 99, 235) !important;
-  }
-
-  .bg-purple-500 {
-    background-color: rgb(168, 85, 247) !important;
-  }
-
-  .bg-purple-600 {
-    background-color: rgb(147, 51, 234) !important;
-  }
-
-  .bg-orange-500 {
-    background-color: rgb(249, 115, 22) !important;
-  }
-
-  .bg-orange-600 {
-    background-color: rgb(234, 88, 12) !important;
-  }
-
-  .bg-green-500 {
-    background-color: rgb(34, 197, 94) !important;
-  }
-
-  .bg-red-500 {
-    background-color: rgb(239, 68, 68) !important;
-  }
-
-  /* Borders - preservar exactos */
-  .border-green-200 {
-    border-color: rgb(187, 247, 208) !important;
-  }
-
-  .border-emerald-200 {
-    border-color: rgb(167, 243, 208) !important;
-  }
-
-  .border-emerald-300 {
-    border-color: rgb(110, 231, 183) !important;
-  }
-
-  .border-emerald-400 {
-    border-color: rgb(52, 211, 153) !important;
-  }
-
-  .border-blue-200 {
-    border-color: rgb(191, 219, 254) !important;
-  }
-
-  .border-yellow-200 {
-    border-color: rgb(254, 240, 138) !important;
-  }
-
-  .border-red-200 {
-    border-color: rgb(254, 202, 202) !important;
-  }
-
-  .border-gray-200 {
-    border-color: rgb(229, 231, 235) !important;
-  }
-
-  [class*="border-white"] {
-    border-color: rgba(255, 255, 255, 0.3) !important;
-  }
-
-  /* Títulos con tamaños optimizados para carta */
-  h1, h2, h3, h4, h5, h6 {
-    page-break-after: avoid !important;
+  /* Cards no se rompen entre páginas */
+  [class*="Card"],
+  .card {
     page-break-inside: avoid !important;
-    margin-bottom: 0.5rem !important;
+    break-inside: avoid !important;
+    margin-bottom: 0.4rem !important;
   }
 
-  h1 {
-    font-size: 18pt !important;
-    line-height: 1.2 !important;
-    font-weight: 700 !important;
-  }
+  /* Títulos */
+  h1 { font-size: 22pt !important; line-height: 1.3 !important; }
+  h2 { font-size: 16pt !important; line-height: 1.3 !important; }
+  h3 { font-size: 13pt !important; line-height: 1.3 !important; }
+  h4, h5, h6 { font-size: 11pt !important; line-height: 1.3 !important; }
+  p { font-size: 10pt !important; line-height: 1.4 !important; }
 
-  h2 {
-    font-size: 14pt !important;
-    line-height: 1.25 !important;
-    font-weight: 600 !important;
-  }
+  /* Padding de Cards */
+  [class*="CardHeader"] { padding: 0.6rem !important; }
+  [class*="CardContent"] { padding: 0.6rem !important; }
 
-  h3 {
-    font-size: 11pt !important;
-    line-height: 1.3 !important;
-    font-weight: 600 !important;
-  }
-
-  h4, h5, h6 {
-    font-size: 10pt !important;
-    line-height: 1.3 !important;
-    font-weight: 500 !important;
-  }
-
-  /* Texto legible y bien espaciado */
-  p, span, div:not(.recharts-wrapper), li {
-    font-size: 9pt !important;
-    line-height: 1.4 !important;
-  }
-
-  /* Tablas */
-  table {
-    border-collapse: collapse;
-    page-break-inside: avoid;
-    width: 100% !important;
-    font-size: 9pt !important;
-  }
-
-  /* Enlaces */
-  a {
-    text-decoration: underline;
-    color: #3b82f6 !important;
-  }
-
-  /* Gráficas optimizadas para tamaño carta */
+  /* Gráficas */
   .recharts-wrapper {
-    display: block !important;
-    visibility: visible !important;
-    max-height: 220px !important;
-    height: 220px !important;
+    max-height: 260px !important;
+    height: 260px !important;
     margin: 0.5rem auto !important;
-    overflow: visible !important;
   }
 
-  .recharts-surface {
-    max-height: 220px !important;
-    overflow: visible !important;
-  }
-
-  /* Mantener colores de las gráficas */
-  .recharts-layer,
-  .recharts-area,
-  .recharts-bar,
-  .recharts-line,
-  .recharts-pie,
-  .recharts-sector {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* Texto de gráficas legible */
-  .recharts-text {
-    font-size: 8.5pt !important;
-  }
-
-  /* Grids responsive optimizados para carta */
+  /* Grids */
   .grid-cols-4,
   .grid-cols-3,
   .grid-cols-2 {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 0.4rem !important;
+    gap: 0.5rem !important;
   }
 
-  /* Grids de 12 columnas */
+  /* Grid 12 columnas */
   .lg\:grid-cols-12 {
     display: grid !important;
     grid-template-columns: repeat(12, 1fr) !important;
-    gap: 0.4rem !important;
+    gap: 0.5rem !important;
   }
 
-  /* Cuando se ocultan elementos, expandir los visibles */
   .lg\:col-span-4:not(.hide-on-print) {
     grid-column: span 12 !important;
   }
 
-  /* Métricas del Reporte: cambiar de vertical a horizontal en impresión */
   .lg\:col-span-4:not(.hide-on-print) .space-y-3 {
     display: grid !important;
     grid-template-columns: repeat(4, 1fr) !important;
-    gap: 0.6rem !important;
-    margin-top: 0 !important;
+    gap: 0.5rem !important;
   }
 
-  .lg\:col-span-4:not(.hide-on-print) .space-y-3 > * + * {
-    margin-top: 0 !important;
+  .lg\:col-span-5 { grid-column: span 5 !important; }
+  .lg\:col-span-3 { grid-column: span 3 !important; }
+
+  /* Iconos */
+  svg { width: 13px !important; height: 13px !important; }
+
+  /* Badges */
+  [class*="Badge"] {
+    padding: 2px 6px !important;
+    font-size: 9pt !important;
   }
 
-  .lg\:col-span-5 {
-    grid-column: span 5 !important;
-  }
-
-  .lg\:col-span-3 {
-    grid-column: span 3 !important;
-  }
-
-  /* Padding balanceado para carta - MUY reducido para métricas */
-  .p-8 {
-    padding: 0.4rem !important;
-  }
-
-  .p-6 {
-    padding: 0.4rem !important;
-  }
-
-  .p-4, .p-5 {
-    padding: 0.35rem !important;
-  }
-
-  .p-3 {
-    padding: 0.3rem !important;
-  }
-  
-  .p-2 {
-    padding: 0.25rem !important;
-  }
-
-  /* Espaciado optimizado para carta - MUY reducido */
-  .space-y-8 > * + * {
-    margin-top: 0.4rem !important;
-  }
-
-  .space-y-6 > * + * {
-    margin-top: 0.35rem !important;
-  }
-
-  .space-y-4 > * + * {
-    margin-top: 0.3rem !important;
-  }
-
-  .space-y-3 > * + * {
-    margin-top: 0.25rem !important;
-  }
-  
-  .space-y-2 > * + * {
-    margin-top: 0.2rem !important;
-  }
-
-  /* Iconos - tamaño visible pero no excesivo */
-  svg {
-    width: 14px !important;
-    height: 14px !important;
-  }
-
-  /* Optimizar ancho para carta - SIN padding para maximizar espacio */
-  .max-w-\[1800px\],
-  .max-w-7xl,
-  .max-w-\[1400px\] {
-    max-width: 100% !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    margin: 0 !important;
-  }
-
-  /* Motion divs */
-  [class*="motion"],
-  .motion-div {
-    display: block !important;
+  /* Motion divs visibles */
+  [class*="motion"] {
     opacity: 1 !important;
     transform: none !important;
   }
 
-  /* Gaps - muy reducidos para máxima compactación */
-  .gap-6 {
-    gap: 0.4rem !important;
-  }
+  /* Colores de texto */
+  .text-white { color: rgb(255, 255, 255) !important; }
+  .text-slate-200 { color: rgb(226, 232, 240) !important; }
+  .text-slate-300 { color: rgb(203, 213, 225) !important; }
+  .text-emerald-300 { color: rgb(110, 231, 183) !important; }
+  .text-emerald-600 { color: rgb(5, 150, 105) !important; }
+  .text-green-600 { color: rgb(22, 163, 74) !important; }
+  .text-green-700 { color: rgb(21, 128, 61) !important; }
+  .text-blue-600 { color: rgb(37, 99, 235) !important; }
+  .text-blue-700 { color: rgb(29, 78, 216) !important; }
+  .text-purple-600 { color: rgb(147, 51, 234) !important; }
+  .text-orange-700 { color: rgb(194, 65, 12) !important; }
+  .text-red-600 { color: rgb(220, 38, 38) !important; }
+  .text-red-700 { color: rgb(185, 28, 28) !important; }
+  .text-yellow-600 { color: rgb(202, 138, 4) !important; }
+  .text-yellow-700 { color: rgb(161, 98, 7) !important; }
+  .text-gray-500 { color: rgb(107, 114, 128) !important; }
+  .text-gray-700 { color: rgb(55, 65, 81) !important; }
+  .text-gray-900 { color: rgb(17, 24, 39) !important; }
 
-  .gap-4 {
-    gap: 0.3rem !important;
-  }
-
-  .gap-3 {
-    gap: 0.25rem !important;
-  }
-  
-  .gap-2 {
-    gap: 0.2rem !important;
-  }
-
-  /* Badges */
-  .badge,
-  [class*="Badge"] {
-    padding: 2px 6px !important;
-    font-size: 8pt !important;
-  }
-
-  /* Absolute positioning - solo convertir los que causan problemas */
-  .absolute:not([class*="inset-0"]) {
-    position: relative !important;
-  }
-
-  /* Background patterns mantener pero con opacity muy baja para evitar oscuridad excesiva */
-  .absolute.inset-0[class*="bg-"] {
-    opacity: 0.08 !important;
-  }
-  
-  /* Reducir intensidad de patterns en headers oscuros */
-  .absolute.inset-0 {
-    opacity: 0.1 !important;
-  }
-
-  /* Saltos de página inteligentes */
-  .page-break-before {
-    page-break-before: always !important;
-  }
-
-  .page-break-after {
-    page-break-after: always !important;
-  }
-
-  /* Evitar saltos de página en secciones críticas */
-  .keep-together {
-    page-break-inside: avoid !important;
-  }
-  
-  /* Secciones específicas que no deben cortarse */
-  [class*="bg-gradient"],
-  [class*="rounded-xl"],
-  [class*="shadow"],
-  .grid > div,
-  [role="article"],
-  [role="region"] {
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-  
-  /* Contenedores flex que no deben cortarse */
-  .flex,
-  [class*="flex"] {
-    page-break-inside: avoid !important;
-  }
-  
-  /* Grupos de badges y pills */
-  [class*="flex-wrap"],
-  [class*="space-x"] {
-    page-break-inside: avoid !important;
-  }
-
-  /* Mejorar legibilidad de números grandes */
-  .text-3xl,
-  .text-4xl {
-    font-size: 16pt !important;
-    line-height: 1.15 !important;
-  }
-
-  .text-2xl {
-    font-size: 13pt !important;
-    line-height: 1.25 !important;
-  }
-
-  .text-xl {
-    font-size: 11pt !important;
-    line-height: 1.3 !important;
-  }
-
-  .text-lg {
-    font-size: 10pt !important;
-    line-height: 1.35 !important;
-  }
-
-  .text-sm {
-    font-size: 8pt !important;
-    line-height: 1.4 !important;
-  }
-
-  .text-xs {
-    font-size: 7pt !important;
-    line-height: 1.4 !important;
-  }
+  /* Borders */
+  .border-green-200 { border-color: rgb(187, 247, 208) !important; }
+  .border-emerald-200 { border-color: rgb(167, 243, 208) !important; }
+  .border-emerald-300 { border-color: rgb(110, 231, 183) !important; }
+  .border-emerald-400 { border-color: rgb(52, 211, 153) !important; }
+  .border-blue-200 { border-color: rgb(191, 219, 254) !important; }
+  .border-yellow-200 { border-color: rgb(254, 240, 138) !important; }
+  .border-red-200 { border-color: rgb(254, 202, 202) !important; }
+  .border-gray-200 { border-color: rgb(229, 231, 235) !important; }
 }
