@@ -32,24 +32,46 @@
     background-color: white !important;
   }
   
-  /* ELIMINAR fondos grises de contenedores wrapper */
+  /* ELIMINAR fondos grises de contenedores wrapper - MÁS ESPECÍFICO */
+  body,
+  html body,
+  body *,
   [class*="bg-gray"],
   .bg-gray-50,
   .bg-gray-100,
+  .bg-gray-200,
   [class*="from-gray"],
   [class*="via-white"],
-  [class*="to-gray"] {
+  [class*="to-gray"],
+  [class*="via-gray"] {
     background: white !important;
     background-color: white !important;
+    background-image: none !important;
   }
   
-  /* Contenedores principales sin fondo gris */
+  /* Contenedores principales sin fondo gris - FORZADO */
   .min-h-screen,
   [class*="min-h-screen"],
-  [class*="bg-gradient-to-br"] {
+  [class*="bg-gradient-to-br"],
+  [class*="bg-gradient-to-r"],
+  [class*="bg-gradient-to-l"],
+  [class*="bg-gradient-to-t"],
+  [class*="bg-gradient-to-b"] {
     background: white !important;
     background-color: white !important;
+    background-image: none !important;
     padding: 0 !important;
+  }
+  
+  /* Sobrescribir específicamente los gradientes grises */
+  .from-gray-50,
+  .from-gray-100,
+  .via-white,
+  .to-gray-50,
+  .to-gray-100 {
+    background: white !important;
+    background-color: white !important;
+    background-image: none !important;
   }
 
   /* Asegurar que todos los contenedores tengan fondo blanco por defecto */
