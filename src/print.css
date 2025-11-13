@@ -36,18 +36,25 @@
 
   /* ELIMINAR TODOS los contenedores wrapper - hacer invisibles pero mantener contenido */
   .min-h-screen,
-  [class*="min-h-screen"],
-  [class*="bg-gradient"],
-  [class*="from-gray"],
-  [class*="via-white"],
-  [class*="to-gray"] {
-    background: none !important;
-    background-color: transparent !important;
+  [class*="min-h-screen"] {
+    background: white !important;
+    background-color: white !important;
     background-image: none !important;
     min-height: 0 !important;
     height: auto !important;
     padding: 0 !important;
     margin: 0 !important;
+  }
+
+  /* ANULAR específicamente gradientes grises SOLO en contenedores wrapper (no en Cards) */
+  div[class*="from-gray"]:not([class*="Card"]),
+  div[class*="via-white"]:not([class*="Card"]),
+  div[class*="to-gray"]:not([class*="Card"]),
+  div.bg-gradient-to-br:not([class*="Card"]),
+  div[class*="bg-gradient-to-br"]:not([class*="Card"]) {
+    background: white !important;
+    background-color: white !important;
+    background-image: none !important;
   }
 
   /* Contenedores max-w sin restricciones */
@@ -76,6 +83,13 @@
 
   [class*="space-y-"] > *:first-child {
     margin-top: 0 !important;
+  }
+
+  /* RESETEAR solo contenedores wrapper sin clases específicas */
+  div:not([class*="bg-"]):not([class*="from-"]):not([class*="to-"]):not([class*="Card"]):not([class*="recharts"]) {
+    background: white !important;
+    background-color: white !important;
+    background-image: none !important;
   }
 
   /* Eliminar solo sombras y animaciones */
