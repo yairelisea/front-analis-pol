@@ -1,4 +1,48 @@
 @media print {
+  /* OCULTAR el header principal que solo tiene título */
+  body > div > div > div:first-child > div:first-child:only-child {
+    display: none !important;
+  }
+  
+  /* OCULTAR headers que solo tienen texto centrado */
+  .text-center:has(h1):has(p) {
+    display: none !important;
+  }
+  
+  /* SOLUCIÓN NUCLEAR SELECTIVA: Forzar fondo blanco solo en contenedores wrapper */
+  body,
+  body > div,
+  body > div > div:first-child,
+  #root,
+  #root > div:first-child,
+  [class*="min-h-screen"],
+  [class*="bg-gradient-to-br"][class*="from-gray"] {
+    background: white !important;
+    background-color: white !important;
+    background-image: none !important;
+    padding: 0 !important;
+  }
+  
+  /* PRESERVAR colores en elementos importantes */
+  [class*="bg-gradient-to-r"][class*="from-slate"],
+  [class*="bg-gradient-to-r"][class*="from-emerald"],
+  [class*="bg-gradient-to-br"][class*="from-emerald"],
+  [class*="bg-gradient-to-br"][class*="from-blue"],
+  [class*="bg-gradient-to-br"][class*="from-purple"],
+  [class*="bg-gradient-to-br"][class*="from-orange"],
+  .bg-emerald-500,
+  .bg-emerald-600,
+  .bg-blue-500,
+  .bg-blue-600,
+  .bg-purple-500,
+  .bg-purple-600,
+  .bg-orange-500,
+  .bg-orange-600 {
+    background: revert !important;
+    background-color: revert !important;
+    background-image: revert !important;
+  }
+  
   /* Ocultar elementos no necesarios */
   .no-print,
   .hide-on-print {

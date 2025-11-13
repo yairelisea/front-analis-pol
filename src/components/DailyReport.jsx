@@ -319,7 +319,7 @@ const DailyReport = ({ actorName, onBack }) => {
   if (!reportData) {
     console.log('⚠️ No reportData available');
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center">
+  <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 p-8 print:bg-white print:p-0 print:min-h-0">
         <p className="text-gray-600">No hay datos disponibles.</p>
       </div>
     );
