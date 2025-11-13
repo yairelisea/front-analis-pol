@@ -12,7 +12,9 @@ import {
   TrendingUp, TrendingDown, Minus, Activity, Eye, Shield,
   PlusCircle, RefreshCw, AlertCircle, CheckCircle2,
   MessageSquare, Users, Target, FileText, Download,
-  ArrowUpRight, Clock, Star, Zap, BarChart3
+  ArrowUpRight, Clock, Star, Zap, BarChart3,
+  ExternalLink, Calendar, Smile, Frown, Tag, Sparkles,
+  ThumbsUp, ThumbsDown, Printer
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { API_BASE } from '../config';
@@ -175,7 +177,7 @@ const ActivityItem = ({ activity }) => {
     normal: 'bg-green-50 border-green-200',
     low: 'bg-blue-50 border-blue-200',
   };
-  
+
   return (
     <div className={`p-4 rounded-lg border ${bgColors[activity.priority]} hover:shadow-md transition-shadow`}>
       <div className="flex items-start gap-3">
@@ -193,6 +195,152 @@ const ActivityItem = ({ activity }) => {
         </div>
       </div>
     </div>
+  );
+};
+
+// Componente de Artículo Analizado
+const AnalyzedArticleCard = ({ article }) => {
+  // Colores según sentimiento
+  const sentimentConfig = {
+    positive: {
+      bg: 'bg-green-50',
+      text: 'text-green-700',
+      border: 'border-green-200',
+      icon: Smile,
+      label: 'Positivo'
+    },
+    neutral: {
+      bg: 'bg-gray-50',
+      text: 'text-gray-700',
+      border: 'border-gray-200',
+      icon: Minus,
+      label: 'Neutral'
+    },
+    negative: {
+      bg: 'bg-red-50',
+      text: 'text-red-700',
+      border: 'border-red-200',
+      icon: Frown,
+      label: 'Negativo'
+    }
+  };
+
+  const stanceConfig = {
+    favor: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'A favor', icon: ThumbsUp },
+    against: { bg: 'bg-orange-50', text: 'text-orange-700', label: 'En contra', icon: ThumbsDown },
+    neutral: { bg: 'bg-gray-50', text: 'text-gray-700', label: 'Neutral', icon: Minus }
+  };
+
+  const sentiment = article.sentiment?.toLowerCase() || 'neutral';
+  const sentStyle = sentimentConfig[sentiment] || sentimentConfig.neutral;
+  const SentimentIcon = sentStyle.icon;
+
+  const stance = article.stance?.toLowerCase() || 'neutral';
+  const stanceStyle = stanceConfig[stance] || stanceConfig.neutral;
+  const StanceIcon = stanceStyle.icon;
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Fecha no disponible';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch {
+      return 'Fecha no disponible';
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+    >
+      <div className="p-5">
+        {/* Encabezado */}
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex-1">
+            <h3 className="text-lg font-bold text-gray-900 mb-2 hover:text-emerald-600 transition-colors">
+              {article.titulo || 'Sin título'}
+            </h3>
+            <div className="flex items-center gap-2 flex-wrap text-xs text-gray-500 mb-3">
+              <div className="flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5" />
+                <span>{formatDate(article.fecha)}</span>
+              </div>
+              {article.platform && (
+                <>
+                  <span>•</span>
+                  <Badge variant="outline" className="text-xs">
+                    {article.platform}
+                  </Badge>
+                </>
+              )}
+            </div>
+
+            {/* Badges de Sentiment y Stance */}
+            <div className="flex items-center gap-2 mb-3">
+              <Badge className={`${sentStyle.bg} ${sentStyle.text} border ${sentStyle.border}`}>
+                <SentimentIcon className="h-3 w-3 mr-1" />
+                {sentStyle.label}
+              </Badge>
+
+              {article.stance && article.stance !== 'neutral' && (
+                <Badge className={`${stanceStyle.bg} ${stanceStyle.text}`}>
+                  <StanceIcon className="h-3 w-3 mr-1" />
+                  {stanceStyle.label}
+                </Badge>
+              )}
+
+              {article.topic && (
+                <Badge variant="outline" className="text-xs">
+                  <Tag className="h-3 w-3 mr-1" />
+                  {article.topic}
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-emerald-600 hover:bg-emerald-50 flex-shrink-0"
+            onClick={() => window.open(article.link, '_blank')}
+          >
+            <ExternalLink className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Análisis de IA */}
+        <div className="bg-gradient-to-r from-emerald-50/50 to-teal-50/50 rounded-lg p-3 mb-3 border border-emerald-100">
+          <div className="flex items-start gap-2 mb-2">
+            <Sparkles className="h-4 w-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+            <span className="text-xs font-semibold text-emerald-700">Análisis IA</span>
+          </div>
+          <p className="text-sm text-gray-700 leading-relaxed">
+            {article.descripcion || 'Sin análisis disponible'}
+          </p>
+        </div>
+
+        <Separator className="my-3 bg-gray-200" />
+
+        {/* Link de la fuente */}
+        <div className="mt-3">
+          <a
+            href={article.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1"
+          >
+            <ExternalLink className="h-3 w-3" />
+            Ver fuente completa
+          </a>
+        </div>
+      </div>
+    </motion.div>
   );
 };
 
@@ -224,6 +372,22 @@ const WeeklyReport = ({
     // Si ya tenemos reportData de las props, no hacer fetch
     if (reportData) {
       console.log('✅ Using reportData from props');
+      console.log('📊 REPORT DATA STRUCTURE:', {
+        hasWeeklyTrend: !!reportData.weeklyTrend,
+        weeklyTrendLength: reportData.weeklyTrend?.length,
+        hasSentimentDistribution: !!reportData.sentimentDistribution,
+        sentimentDistributionLength: reportData.sentimentDistribution?.length,
+        hasNarrativaDistribution: !!reportData.narrativaDistribution,
+        hasCampaigns: !!reportData.campaigns,
+        campaignsLength: reportData.campaigns?.length,
+        hasFoda: !!reportData.foda,
+        hasActoresClave: !!reportData.actoresClave,
+        actoresClaveLength: reportData.actoresClave?.length,
+        hasRecentActivity: !!reportData.recentActivity,
+        recentActivityLength: reportData.recentActivity?.length,
+        hasAnalyzedArticles: !!reportData.analyzedArticles,
+        analyzedArticlesLength: reportData.analyzedArticles?.length
+      });
       setDashboardData(reportData);
       setLoading(false);
       return;
@@ -300,6 +464,10 @@ const WeeklyReport = ({
     console.log('Navegando a:', path);
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   if (loading) {
     console.log('⏳ Showing loading state');
     return (
@@ -326,17 +494,17 @@ const WeeklyReport = ({
   console.log('📋 Dashboard data keys:', Object.keys(dashboardData));
 
   return (
-    <div className="max-w-[1800px] mx-auto space-y-8">
+    <div className="max-w-[1800px] mx-auto space-y-4 md:space-y-6 lg:space-y-8 px-4 md:px-0 print:!max-w-none print:!mx-0 print:!space-y-4">
       
       {/* Header Executive */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
         <Card className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl border-0 overflow-hidden">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-30" />
-          
+
           <CardContent className="p-8 relative">
             <div className="flex items-start justify-between mb-6">
               <div className="flex-1">
-                <div className="flex items-center gap-4 mb-3">
+                <div className="flex items-center gap-4 mb-3 no-print">
                   <Activity className="h-10 w-10" />
                   <Badge variant="outline" className="bg-white/20 text-white border-white/30 text-sm px-3 py-1">
                     Análisis de Percepción Digital
@@ -346,26 +514,32 @@ const WeeklyReport = ({
                     Actualizado en vivo
                   </Badge>
                 </div>
-                <h1 className="text-5xl font-bold mb-3">{dashboardData.actor}</h1>
-                <p className="text-slate-300 text-lg">{dashboardData.periodo}</p>
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3">{dashboardData.actor}</h1>
+                <p className="text-slate-300 text-base md:text-lg">{dashboardData.periodo}</p>
               </div>
-              <div className="flex gap-3">
-                <Button variant="outline" size="lg" className="bg-white/10 border-white/30 text-white hover:bg-white/20" onClick={onNewAnalysis}>
-                  Nuevo Análisis
+              <div className="flex gap-2 md:gap-3 no-print flex-wrap">
+                <Button variant="outline" size="sm" className="bg-white/10 border-white/30 text-white hover:bg-white/20 md:size-lg" onClick={onNewAnalysis}>
+                  <PlusCircle className="h-4 w-4 md:h-5 md:w-5 md:mr-2" />
+                  <span className="hidden md:inline">Nuevo Análisis</span>
                 </Button>
-                <Button variant="outline" size="lg" className="bg-white/10 border-white/30 text-white hover:bg-white/20" onClick={handleRefresh} disabled={refreshing}>
-                  <RefreshCw className={`h-5 w-5 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-                  Actualizar
+                <Button variant="outline" size="sm" className="bg-white/10 border-white/30 text-white hover:bg-white/20 md:size-lg" onClick={handleRefresh} disabled={refreshing}>
+                  <RefreshCw className={`h-4 w-4 md:h-5 md:w-5 md:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                  <span className="hidden md:inline">Actualizar</span>
                 </Button>
-                <Button size="lg" className="bg-brand-green hover:bg-emerald-600 text-white shadow-lg" onClick={() => handleNavigate('/user/campaigns/new')}>
-                  <PlusCircle className="h-5 w-5 mr-2" />
-                  Nueva Campaña
+                <Button variant="outline" size="sm" className="bg-white/10 border-white/30 text-white hover:bg-white/20 md:size-lg" onClick={handlePrint}>
+                  <Printer className="h-4 w-4 md:h-5 md:w-5 md:mr-2" />
+                  <span className="hidden md:inline">Imprimir</span>
+                </Button>
+                <Button size="sm" className="bg-brand-green hover:bg-emerald-600 text-white shadow-lg md:size-lg" onClick={() => handleNavigate('/user/campaigns/new')}>
+                  <PlusCircle className="h-4 w-4 md:h-5 md:w-5 md:mr-2" />
+                  <span className="hidden sm:inline">Nueva Campaña</span>
+                  <span className="sm:hidden">Nueva</span>
                 </Button>
               </div>
             </div>
             
             {/* Diagnóstico Estratégico */}
-            <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+            <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 md:p-6 border border-white/20">
               <div className="flex items-start gap-4">
                 <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-400/30">
                   <Shield className="h-6 w-6 text-emerald-300" />
@@ -382,7 +556,7 @@ const WeeklyReport = ({
 
       {/* KPIs Hero - 4 columnas */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-        <div className="grid grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           <HeroKPI
             title="Total Menciones"
             value={dashboardData.totalMenciones.toLocaleString()}
@@ -418,10 +592,10 @@ const WeeklyReport = ({
 
       {/* Métricas del Reporte + Distribuciones */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-        <div className="grid grid-cols-12 gap-6">
-          
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+
           {/* Métricas del Reporte Ejecutivo - 4 cols */}
-          <Card className="col-span-4 shadow-lg">
+          <Card className="lg:col-span-4 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-brand-green" />
@@ -458,7 +632,7 @@ const WeeklyReport = ({
           </Card>
 
           {/* Gráfica de Tendencia Semanal - 5 cols */}
-          <Card className="col-span-5 shadow-lg">
+          <Card className="lg:col-span-5 shadow-lg hide-on-print">
             <CardHeader>
               <CardTitle>Tendencia Semanal</CardTitle>
               <CardDescription>Volumen de menciones por día</CardDescription>
@@ -498,7 +672,7 @@ const WeeklyReport = ({
           </Card>
 
           {/* Distribuciones - 3 cols */}
-          <Card className="col-span-3 shadow-lg">
+          <Card className="lg:col-span-3 shadow-lg hide-on-print">
             <CardHeader>
               <CardTitle className="text-base">Distribuciones</CardTitle>
             </CardHeader>
@@ -585,7 +759,7 @@ const WeeklyReport = ({
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
               {dashboardData.campaigns.map((campaign) => (
                 <CampaignCard 
                   key={campaign.id} 
@@ -600,10 +774,10 @@ const WeeklyReport = ({
 
       {/* FODA + Actores Clave + Actividad */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-        <div className="grid grid-cols-12 gap-6">
-          
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+
           {/* FODA - 4 cols */}
-          <Card className="col-span-4 shadow-lg">
+          <Card className="lg:col-span-4 shadow-lg">
             <CardHeader>
               <CardTitle>Análisis FODA</CardTitle>
               <CardDescription>Resumen estratégico</CardDescription>
@@ -666,81 +840,73 @@ const WeeklyReport = ({
           </Card>
 
           {/* Actores Clave - 4 cols */}
-          <Card className="col-span-4 shadow-lg">
+          <Card className="lg:col-span-4 shadow-lg">
             <CardHeader>
               <CardTitle>Actores y Medios Clave</CardTitle>
               <CardDescription>Influencia en la narrativa</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {dashboardData.actoresClave.map((actor, idx) => (
-                <ActorCard key={idx} actor={actor} />
-              ))}
+              {dashboardData.actoresClave && dashboardData.actoresClave.length > 0 ? (
+                dashboardData.actoresClave.map((actor, idx) => (
+                  <ActorCard key={idx} actor={actor} />
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">No hay actores identificados</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
           {/* Actividad Reciente - 4 cols */}
-          <Card className="col-span-4 shadow-lg">
+          <Card className="lg:col-span-4 shadow-lg hide-on-print">
             <CardHeader>
               <CardTitle>Actividad Reciente</CardTitle>
               <CardDescription>Últimas actualizaciones del sistema</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {dashboardData.recentActivity.map((activity, idx) => (
-                <ActivityItem key={idx} activity={activity} />
-              ))}
+              {dashboardData.recentActivity && dashboardData.recentActivity.length > 0 ? (
+                dashboardData.recentActivity.map((activity, idx) => (
+                  <ActivityItem key={idx} activity={activity} />
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <Clock className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">Sin actividad en este momento</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
       </motion.div>
 
-      {/* Keywords y Acciones */}
+      {/* Artículos Analizados */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
         <Card className="shadow-lg">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Palabras Clave Detectadas</CardTitle>
-                <CardDescription>Términos más relevantes del período analizado</CardDescription>
-              </div>
-              <div className="flex gap-3">
-                <Button variant="outline" className="gap-2">
-                  <Download className="h-4 w-4" />
-                  Descargar Reporte PDF
-                </Button>
-                <Button variant="outline" className="gap-2">
-                  <FileText className="h-4 w-4" />
-                  Ver Reporte Completo
-                </Button>
+                <CardTitle>Artículos Analizados</CardTitle>
+                <CardDescription>
+                  {dashboardData.analyzedArticles?.length || 0} artículos analizados en este período
+                </CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-3">
-              {dashboardData.keywords.map((kw, idx) => {
-                const sentimentColors = {
-                  positive: 'hover:bg-green-500 hover:border-green-600',
-                  neutral: 'hover:bg-yellow-500 hover:border-yellow-600',
-                  negative: 'hover:bg-red-500 hover:border-red-600',
-                };
-                return (
-                  <motion.div
-                    key={kw.word}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: idx * 0.05 }}
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <Badge 
-                      variant="outline" 
-                      className={`text-base px-4 py-2 cursor-pointer transition-all ${sentimentColors[kw.sentiment]} hover:text-white`}
-                    >
-                      #{kw.word}
-                      <span className="ml-2 text-xs opacity-70">({kw.frequency})</span>
-                    </Badge>
-                  </motion.div>
-                );
-              })}
-            </div>
+            {dashboardData.analyzedArticles && dashboardData.analyzedArticles.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4">
+                {dashboardData.analyzedArticles.map((article, idx) => (
+                  <AnalyzedArticleCard key={idx} article={article} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-600">No hay artículos analizados disponibles</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>

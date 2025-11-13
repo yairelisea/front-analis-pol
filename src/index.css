@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Estilos de impresión - editables en src/print.css */
+@import './print.css';
+
 :root {
   --background: 0 0% 100%; /* Blanco */
   --foreground: 222.2 84% 4.9%; /* Negro */
@@ -62,3 +65,4 @@ body {
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
   animation: shimmer 2s infinite;
 }
+
